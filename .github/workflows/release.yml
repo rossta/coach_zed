@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows:
+      - Verify
+    branches:
+      - main
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.5"
+          bundler-cache: true
+
+      - name: Install git-mkver
+        run: gem install git-mkver
+
+      - name: Collect release metadata
+        run: ruby script/release_metadata.rb --output-dir "$RUNNER_TEMP/release"
+
+      - name: Read release metadata
+        id: release
+        run: |
+          VERSION="$(cat "$RUNNER_TEMP/release/version.txt")"
+          NOTES_FILE="$RUNNER_TEMP/release/release-notes.md"
+          CURRENT_VERSION="$(ruby -e 'require "./lib/fitness_butler/version"; puts FitnessButler::VERSION')"
+
+          if [ "$VERSION" = "$CURRENT_VERSION" ]; then
+            echo "No version bump detected. Skipping release."
+            echo "skip_release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "skip_release=false" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Stop if no release is needed
+        if: ${{ steps.release.outputs.skip_release == 'true' }}
+        run: exit 0
+
+      - name: Update version file for packaging
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          VERSION="$VERSION" ruby -e 'path = "lib/fitness_butler/version.rb"; version = ENV.fetch("VERSION"); contents = File.read(path); contents = contents.sub(/VERSION = ".*"/, "VERSION = \"#{version}\""); File.write(path, contents)'
+
+      - name: Build gem
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: gem build fitness_butler.gemspec
+
+      - name: Push gem to RubyGems
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: gem push pkg/*.gem
+
+      - name: Create tag
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Publish GitHub release
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.release.outputs.version }}
+          name: v${{ steps.release.outputs.version }}
+          body_path: ${{ steps.release.outputs.notes_file }}
+          files: pkg/*.gem

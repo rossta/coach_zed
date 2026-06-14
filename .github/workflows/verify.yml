@@ -1,0 +1,45 @@
+name: Verify
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+jobs:
+  standard:
+    name: Standard
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.5"
+          bundler-cache: true
+
+      - name: Check formatting
+        run: bundle exec standardrb
+
+  rspec:
+    name: RSpec
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.5"
+          bundler-cache: true
+
+      - name: Run specs
+        run: bundle exec rspec
