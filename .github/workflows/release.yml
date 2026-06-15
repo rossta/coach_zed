@@ -32,9 +32,9 @@ jobs:
           bundler-cache: true
 
       - name: Install git-mkver
-        run: |
-          curl -L https://github.com/idc101/git-mkver/releases/download/v1.4.0/git-mkver-linux-x86_64-1.4.0.tar.gz | tar xvz
-          sudo mv git-mkver /usr/local/bin
+        uses: cperezabo/setup-git-mkver@v1
+        with:
+          version: "1.4.0"
 
       - name: Fetch git history and tags
         run: git fetch --tags --prune --prune-tags -f origin
