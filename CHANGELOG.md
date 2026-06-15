@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.2.0...v) (2026-06-15)
+
+### Features
+
+* nudge release pipeline again ([91166c9](https://github.com/rossta/coach_zed/commit/91166c9d0392d18f4723d4c96d7cd0bedd28b215))
 ## [](https://github.com/rossta/coach_zed/compare/v0.1.0...v) (2026-06-15)
 
 ### Features
