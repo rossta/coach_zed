@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && !contains(github.event.workflow_run.head_commit.message || '', '[skip release]') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +23,7 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -31,16 +32,17 @@ jobs:
           bundler-cache: true
 
       - name: Install git-mkver
-        run: gem install git-mkver
+        run: |
+          curl -L https://github.com/idc101/git-mkver/releases/download/v1.4.0/git-mkver-linux-x86_64-1.4.0.tar.gz | tar xvz
+          sudo mv git-mkver /usr/local/bin
 
-      - name: Collect release metadata
-        run: ruby script/release_metadata.rb --output-dir "$RUNNER_TEMP/release"
+      - name: Fetch git history and tags
+        run: git fetch --tags --prune --prune-tags -f origin
 
-      - name: Read release metadata
+      - name: Determine release version
         id: release
         run: |
-          VERSION="$(cat "$RUNNER_TEMP/release/version.txt")"
-          NOTES_FILE="$RUNNER_TEMP/release/release-notes.md"
+          VERSION="$(git mkver next -c mkver.conf)"
           CURRENT_VERSION="$(ruby -e 'require "./lib/coach_zed/version"; puts CoachZed::VERSION')"
 
           if [ "$VERSION" = "$CURRENT_VERSION" ]; then
@@ -51,17 +53,41 @@ jobs:
 
           echo "skip_release=false" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
-
-      - name: Stop if no release is needed
-        if: ${{ steps.release.outputs.skip_release == 'true' }}
-        run: exit 0
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update version file for packaging
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
-          VERSION="$VERSION" ruby -e 'path = "lib/coach_zed/version.rb"; version = ENV.fetch("VERSION"); contents = File.read(path); contents = contents.sub(/VERSION = ".*"/, "VERSION = \"#{version}\""); File.write(path, contents)'
+          git mkver patch -c mkver.conf
+
+      - name: Update changelog
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          npx --yes conventional-changelog-cli -p conventionalcommits -i CHANGELOG.md -s
+
+      - name: Configure git author
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit release changes
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          git add CHANGELOG.md lib/coach_zed/version.rb
+          git commit -m "chore(release): v$VERSION [skip release]"
+
+      - name: Tag release
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+
+      - name: Push release commit and tag
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: git push origin HEAD:main --follow-tags
 
       - name: Build gem
         if: ${{ steps.release.outputs.skip_release != 'true' }}
@@ -73,18 +99,11 @@ jobs:
           GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
         run: gem push pkg/*.gem
 
-      - name: Create tag
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
-        run: |
-          VERSION="${{ steps.release.outputs.version }}"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          git push origin "v$VERSION"
-
       - name: Publish GitHub release
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.release.outputs.version }}
-          name: v${{ steps.release.outputs.version }}
-          body_path: ${{ steps.release.outputs.notes_file }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.tag }}
+          body_path: CHANGELOG.md
           files: pkg/*.gem
