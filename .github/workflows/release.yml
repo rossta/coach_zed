@@ -34,7 +34,7 @@ jobs:
       - name: Install git-mkver
         uses: cperezabo/setup-git-mkver@v1
         with:
-          version: "1.4.0"
+          version: "1.3.0"
 
       - name: Fetch git history and tags
         run: git fetch --tags --prune --prune-tags -f origin
