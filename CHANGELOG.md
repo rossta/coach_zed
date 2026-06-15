@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.3.0...v) (2026-06-15)
+
+### Features
+
+* add steep typechecking ([7dd711b](https://github.com/rossta/coach_zed/commit/7dd711b3bdd15d5b04a6917bb5864b513fcc35d7))
 ## [](https://github.com/rossta/coach_zed/compare/v0.2.0...v) (2026-06-15)
 
 ### Features
