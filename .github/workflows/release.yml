@@ -42,10 +42,10 @@ jobs:
       - name: Determine release version
         id: release
         run: |
-          VERSION="$(git mkver next -c mkver.conf)"
+          VERSION="$(git mkver next -c mkver.conf 2>/dev/null || true)"
           CURRENT_VERSION="$(ruby -e 'require "./lib/coach_zed/version"; puts CoachZed::VERSION')"
 
-          if [ "$VERSION" = "$CURRENT_VERSION" ]; then
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$CURRENT_VERSION" ]; then
             echo "No version bump detected. Skipping release."
             echo "skip_release=true" >> "$GITHUB_OUTPUT"
             exit 0
