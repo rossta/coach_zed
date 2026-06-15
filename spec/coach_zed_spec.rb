@@ -7,7 +7,7 @@ require "yaml"
 require "tmpdir"
 
 RSpec.describe CoachZed do
-  let(:catalog_dir) { File.expand_path("../../fitness_calendar/workouts", __dir__) }
+  let(:catalog_dir) { File.expand_path("fixtures/workouts", __dir__) }
   let(:consultation_prompt) { "For the next month, improve swing speed while keeping recovery manageable." }
   let(:start_date) { Date.new(2026, 6, 15) }
   let(:schedule_response) do

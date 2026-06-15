@@ -3,7 +3,7 @@
 require "pathname"
 
 RSpec.describe CoachZed::Catalog::Loader do
-  let(:catalog_dir) { File.expand_path("../../../fitness_calendar/workouts", __dir__) }
+  let(:catalog_dir) { File.expand_path("../fixtures/workouts", __dir__) }
 
   it "loads catalog entries and ignores template files" do
     entries = described_class.new(catalog_dir).load
