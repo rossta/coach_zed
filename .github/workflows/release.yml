@@ -42,7 +42,7 @@ jobs:
       - name: Determine release version
         id: release
         run: |
-          VERSION="$(git mkver next -c mkver.conf 2>/dev/null || true)"
+          VERSION="$(git mkver -c mkver.conf next 2>/dev/null || true)"
           CURRENT_VERSION="$(ruby -e 'require "./lib/coach_zed/version"; puts CoachZed::VERSION')"
 
           if [ -z "$VERSION" ] || [ "$VERSION" = "$CURRENT_VERSION" ]; then
@@ -59,7 +59,7 @@ jobs:
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
-          git mkver patch -c mkver.conf
+          git mkver -c mkver.conf patch
 
       - name: Update changelog
         if: ${{ steps.release.outputs.skip_release != 'true' }}
