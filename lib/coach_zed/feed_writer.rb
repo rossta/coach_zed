@@ -78,6 +78,7 @@ class CoachZed
     end
 
     def event_description(day)
+      # @type var pieces: Array[String]
       pieces = []
       pieces << day["notes"].to_s if day["notes"] && !day["notes"].to_s.empty?
       if day["day_type"] == "workout"

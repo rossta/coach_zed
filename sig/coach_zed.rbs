@@ -1,4 +1,238 @@
 class CoachZed
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+  class Result
+    attr_reader schedule_path: Pathname
+    attr_reader ics_path: Pathname
+    attr_reader webcal_path: Pathname
+    attr_reader schedule: Hash[String, untyped]
+
+    def initialize: (
+      schedule_path: Pathname,
+      ics_path: Pathname,
+      webcal_path: Pathname,
+      schedule: Hash[String, untyped]
+    ) -> void
+  end
+
+  class Config
+    attr_accessor workout_catalog_dir: String?
+    attr_accessor model: String?
+    attr_accessor output_dir: String?
+    attr_accessor feed_output_basename: String?
+    attr_accessor existing_feed_path: String?
+
+    def initialize: (
+      ?workout_catalog_dir: String?,
+      ?model: String?,
+      ?output_dir: String?,
+      ?feed_output_basename: String?,
+      ?existing_feed_path: String?
+    ) -> void
+
+    def apply: (Hash[untyped, untyped]) -> void
+  end
+
+  def self.config: -> Config
+  def self.configure: { (Config) -> untyped } -> untyped
+  def self.load_config_file: -> String?
+  def self.reset_config!: -> void
+  def self.default_config: -> Config
+  def self.config_file_paths: -> Array[String]
+
+  attr_reader workout_catalog_dir: Pathname
+  attr_reader ai_client: untyped
+  attr_reader output_dir: Pathname
+  attr_reader schedule_output_dir: Pathname
+  attr_reader feed_output_dir: Pathname
+  attr_reader feed_output_basename: String?
+  attr_reader existing_feed_path: Pathname?
+
+  def initialize: (
+    client: untyped,
+    ?workout_catalog_dir: String?,
+    ?model: String?,
+    ?output_dir: String?,
+    ?feed_output_basename: String?,
+    ?existing_feed_path: String?
+  ) -> void
+
+  def generate_schedule: (
+    start_date: untyped,
+    ?consultation_prompt: String?,
+    ?consultation_prompt_path: String?
+  ) -> Result
+
+  private
+
+  def wrap_client: (untyped client, model: String) -> untyped
+  def resolve_prompt_text: (String? consultation_prompt, String? consultation_prompt_path) -> String
+  def normalize_date: (untyped value) -> Date
+  def load_existing_feed: -> CoachZed::FeedReader?
+  def generation_start_date: (untyped start_date, existing_feed: CoachZed::FeedReader?) -> Date
+  def schedule_key_for: (String prompt_text, Date start_date, Array[CoachZed::Catalog::Entry] catalog, Integer generation_days, String? existing_feed_context) -> String
+  def catalog_digest: (Array[CoachZed::Catalog::Entry] catalog) -> String
+  def normalize_schedule: (Hash[String, untyped] schedule, start_date: Date, prompt_text: String, schedule_key: String, catalog: Array[CoachZed::Catalog::Entry], generation_days: Integer) -> Hash[String, untyped]
+  def write_schedule: (Hash[String, untyped] schedule, String schedule_key) -> Pathname
+  def write_feeds: (Hash[String, untyped] schedule, start_date: Date, schedule_key: String, existing_feed: CoachZed::FeedReader?) -> Hash[Symbol, Pathname]
+  def schedule_filename: (String schedule_key) -> String
+  def feed_basename: (String schedule_key) -> String
+
+  module Catalog
+    class Entry
+      attr_reader path: Pathname
+      attr_reader relative_path: String
+      attr_reader title: String
+      attr_reader domain: String?
+      attr_reader session_duration: String?
+      attr_reader frequency: String?
+      attr_reader program: String?
+      attr_reader format: String?
+      attr_reader equipment: String?
+      attr_reader summary: String
+      attr_reader work_items: Array[String]
+      attr_reader notes: Array[String]
+      attr_reader source_urls: Array[String]
+
+      def initialize: (
+        path: Pathname,
+        relative_path: String,
+        title: String,
+        ?domain: String?,
+        ?session_duration: String?,
+        ?frequency: String?,
+        ?program: String?,
+        ?format: String?,
+        ?equipment: String?,
+        summary: String,
+        work_items: Array[String],
+        notes: Array[String],
+        source_urls: Array[String]
+      ) -> void
+
+      def fingerprint: -> String
+      def to_h: -> Hash[String, untyped]
+    end
+
+    class Loader
+      IGNORED_BASENAMES: Array[String]
+
+      attr_reader root: Pathname
+
+      def initialize: (Pathname | String) -> void
+      def load: -> Array[Entry]
+
+      private
+
+      def ignored?: (Pathname path) -> bool
+      def parse_entry: (Pathname path) -> Entry?
+      def parse_sections: (Array[String] lines) -> Hash[untyped, Array[String]]
+      def normalize_section_name: (String name) -> String
+      def normalize_key: (String key) -> String
+      def strip_ticks: (String? value) -> String
+      def normalize_bullets: (Array[String] lines) -> Array[String]
+      def normalize_urls: (Array[String] lines) -> Array[String]
+    end
+  end
+
+  module Clients
+    class RubyOpenAI
+      attr_reader client: untyped
+      attr_reader model: String
+
+      def initialize: (client: untyped, ?model: String) -> void
+      def generate: (prompt: String) -> String
+
+      private
+
+      def extract_content: (untyped response) -> String
+    end
+  end
+
+  class FeedReader
+    class Event
+      attr_reader date: Date?
+      attr_reader summary: String?
+      attr_reader description: String?
+
+      def initialize: (
+        ?date: Date?,
+        ?summary: String?,
+        ?description: String?
+      ) -> void
+    end
+
+    def self.load: (Pathname | String) -> Array[Event]
+    def self.load_existing: (Pathname | String) -> FeedReader
+
+    def initialize: (String) -> void
+    attr_reader feed_content: String
+    def events: -> Array[Event]
+    def last_date: -> Date?
+    def recent_events: (?limit_days: Integer) -> Array[Event]
+    def to_context: (?limit_days: Integer) -> String
+
+    private
+
+    def parse_events: -> Array[Event]
+    def parse_date: (String event_text) -> Date?
+    def parse_line: (String event_text, Regexp pattern) -> String?
+    def unescape: (String? value) -> String
+  end
+
+  class FeedWriter
+    attr_reader schedule: Hash[String, untyped]
+    attr_reader start_date: Date
+    attr_reader existing_feed_content: String?
+
+    def initialize: (
+      schedule: Hash[String, untyped],
+      start_date: Date,
+      ?existing_feed_content: String?
+    ) -> void
+
+    def build: -> String
+
+    private
+
+    def fresh_feed: -> String
+    def append_to_existing_feed: (String existing_feed) -> String
+    def header_lines: -> Array[String]
+    def event_lines: -> Array[String]
+    def schedule_name: -> String
+    def generated_timestamp: -> String
+    def event_summary: (Hash[String, untyped] day) -> String
+    def event_description: (Hash[String, untyped] day) -> String
+    def escape: (untyped value) -> String
+  end
+
+  class PromptBuilder
+    attr_reader consultation_prompt: String
+    attr_reader catalog: Array[Catalog::Entry]
+    attr_reader start_date: Date
+    attr_reader schedule_key: String
+    attr_reader generation_days: Integer
+    attr_reader existing_feed_context: String?
+
+    def initialize: (
+      consultation_prompt: String,
+      catalog: Array[Catalog::Entry],
+      start_date: Date,
+      schedule_key: String,
+      generation_days: Integer,
+      ?existing_feed_context: String?
+    ) -> void
+
+    def build: -> String
+  end
+
+  class ScheduleParser
+    class Error < StandardError
+    end
+
+    def self.parse: (String) -> Hash[String, untyped]
+    def self.extract_json: (String raw_schedule) -> String
+    def self.validate!: (Hash[String, untyped] schedule) -> void
+    def self.validate_day!: (Hash[String, untyped] day, Integer expected_day_number) -> void
+  end
 end

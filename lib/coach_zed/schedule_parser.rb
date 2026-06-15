@@ -20,7 +20,7 @@ class CoachZed
       return text unless text.start_with?("```")
 
       fenced = text.match(/```(?:json)?\s*(.*?)\s*```/m)
-      fenced ? fenced[1].strip : text
+      fenced ? fenced[1].to_s.strip : text
     end
 
     def self.validate!(schedule)

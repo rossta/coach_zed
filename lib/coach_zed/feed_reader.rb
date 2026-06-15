@@ -4,14 +4,22 @@ require "date"
 
 class CoachZed
   class FeedReader
-    Event = Struct.new(:date, :summary, :description, keyword_init: true)
+    class Event
+      attr_reader :date, :summary, :description
+
+      def initialize(date: nil, summary: nil, description: nil)
+        @date = date
+        @summary = summary
+        @description = description
+      end
+    end
 
     def self.load(path)
-      new(File.read(path)).events
+      new(File.read(path.to_s)).events
     end
 
     def self.load_existing(path)
-      new(File.read(path))
+      new(File.read(path.to_s))
     end
 
     def initialize(feed_content)
@@ -29,7 +37,8 @@ class CoachZed
     end
 
     def recent_events(limit_days: 28)
-      cutoff = last_date && (last_date - (limit_days - 1))
+      last = last_date
+      cutoff = last ? last - (limit_days - 1) : nil
       return events if cutoff.nil?
 
       events.select { |event| event.date && event.date >= cutoff }
@@ -37,6 +46,7 @@ class CoachZed
 
     def to_context(limit_days: 28)
       recent_events(limit_days:).map do |event|
+        # @type var pieces: Array[String]
         pieces = []
         pieces << event.date.iso8601 if event.date
         pieces << event.summary if event.summary && !event.summary.empty?

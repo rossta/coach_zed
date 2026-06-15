@@ -17,14 +17,23 @@ require_relative "coach_zed/schedule_parser"
 class CoachZed
   Result = Data.define(:schedule_path, :ics_path, :webcal_path, :schedule)
 
-  Config = Struct.new(
-    :workout_catalog_dir,
-    :model,
-    :output_dir,
-    :feed_output_basename,
-    :existing_feed_path,
-    keyword_init: true
-  ) do
+  class Config
+    attr_accessor :workout_catalog_dir, :model, :output_dir, :feed_output_basename, :existing_feed_path
+
+    def initialize(
+      workout_catalog_dir: nil,
+      model: nil,
+      output_dir: nil,
+      feed_output_basename: nil,
+      existing_feed_path: nil
+    )
+      @workout_catalog_dir = workout_catalog_dir
+      @model = model
+      @output_dir = output_dir
+      @feed_output_basename = feed_output_basename
+      @existing_feed_path = existing_feed_path
+    end
+
     def apply(hash)
       hash.each do |key, value|
         public_send("#{key}=", value) if respond_to?("#{key}=")
@@ -92,7 +101,8 @@ class CoachZed
     config = self.class.config
 
     @workout_catalog_dir = Pathname(workout_catalog_dir || config.workout_catalog_dir || raise(ArgumentError, "workout_catalog_dir is required"))
-    @ai_client = wrap_client(client, model: model || config.model)
+    model_name = model || config.model || "gpt-4.1"
+    @ai_client = wrap_client(client, model: model_name)
     @output_dir = Pathname(output_dir || config.output_dir || "results")
     @schedule_output_dir = @output_dir.join("schedules")
     @feed_output_dir = @output_dir.join("feeds")
@@ -158,7 +168,7 @@ class CoachZed
 
     return consultation_prompt if consultation_prompt
 
-    Pathname(consultation_prompt_path).read
+    Pathname(consultation_prompt_path.to_s).read
   end
 
   def normalize_date(value)
@@ -180,9 +190,10 @@ class CoachZed
   end
 
   def generation_start_date(start_date, existing_feed:)
-    return normalize_date(start_date) if existing_feed.nil? || existing_feed.last_date.nil?
+    last_date = existing_feed&.last_date
+    return normalize_date(start_date) if last_date.nil?
 
-    existing_feed.last_date + 1
+    last_date + 1
   end
 
   def schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_feed_context)
@@ -194,7 +205,7 @@ class CoachZed
         catalog_digest(catalog),
         existing_feed_context.to_s
       ].join("\n")
-    )[0, 12]
+    )[0...12] || ""
   end
 
   def catalog_digest(catalog)

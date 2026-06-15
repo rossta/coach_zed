@@ -45,3 +45,22 @@ jobs:
 
       - name: Run specs
         run: bundle exec rspec
+
+  steep:
+    name: Steep
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.5"
+          bundler-cache: true
+
+      - name: Type check
+        run: bundle exec steep check

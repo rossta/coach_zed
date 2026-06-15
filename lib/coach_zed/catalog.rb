@@ -5,22 +5,39 @@ require "pathname"
 
 class CoachZed
   module Catalog
-    Entry = Struct.new(
-      :path,
-      :relative_path,
-      :title,
-      :domain,
-      :session_duration,
-      :frequency,
-      :program,
-      :format,
-      :equipment,
-      :summary,
-      :work_items,
-      :notes,
-      :source_urls,
-      keyword_init: true
-    ) do
+    class Entry
+      attr_reader :path, :relative_path, :title, :domain, :session_duration, :frequency, :program, :format, :equipment, :summary, :work_items, :notes, :source_urls
+
+      def initialize(
+        path:,
+        relative_path:,
+        title:,
+        summary:,
+        work_items:,
+        notes:,
+        source_urls:,
+        domain: nil,
+        session_duration: nil,
+        frequency: nil,
+        program: nil,
+        format: nil,
+        equipment: nil
+      )
+        @path = path
+        @relative_path = relative_path
+        @title = title
+        @domain = domain
+        @session_duration = session_duration
+        @frequency = frequency
+        @program = program
+        @format = format
+        @equipment = equipment
+        @summary = summary
+        @work_items = work_items
+        @notes = notes
+        @source_urls = source_urls
+      end
+
       def fingerprint
         Digest::SHA256.hexdigest([
           relative_path,
@@ -87,6 +104,7 @@ class CoachZed
         title = lines.find { |line| line.start_with?("# ") }&.sub("# ", "")
         return if title.nil?
 
+        # @type var metadata: Hash[String, String]
         metadata = {}
         index = 1
         index += 1 while index < lines.length && lines[index].strip.empty?
@@ -96,8 +114,8 @@ class CoachZed
           break unless line.start_with?("- ")
 
           if (match = line.match(/^- ([^:]+):\s*(.*)$/))
-            key = normalize_key(match[1])
-            metadata[key] = strip_ticks(match[2])
+            key = normalize_key(match[1].to_s)
+            metadata[key] = strip_ticks(match[2].to_s)
           end
 
           index += 1
@@ -125,16 +143,21 @@ class CoachZed
       end
 
       def parse_sections(lines)
-        sections = Hash.new { |hash, key| hash[key] = [] }
+        # @type var sections: Hash[String, Array[String]]
+        sections = {}
         current = nil
 
         lines.each do |line|
           if (match = line.match(/^##\s+(.+)$/))
-            current = normalize_section_name(match[1])
+            current = normalize_section_name(match[1].to_s)
             next
           end
 
-          sections[current] << line if current
+          next unless current
+          section_name = current.to_s
+
+          sections[section_name] ||= []
+          sections[section_name] << line
         end
 
         sections
