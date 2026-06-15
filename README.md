@@ -2,6 +2,7 @@
 
 CoachZed reads a workout catalog, asks an AI client for a day-by-day training plan, and writes schedule JSON plus calendar feeds.
 
+
 ## Configuration
 
 You can set shared defaults with:
