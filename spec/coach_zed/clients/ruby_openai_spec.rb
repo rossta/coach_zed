@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe FitnessButler::Clients::RubyOpenAI do
+RSpec.describe CoachZed::Clients::RubyOpenAI do
   it "extracts the returned message content from a ruby-openai style response" do
     client = instance_double("RubyOpenAIClient")
     response = {

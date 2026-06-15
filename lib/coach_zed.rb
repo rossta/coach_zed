@@ -6,15 +6,15 @@ require "json"
 require "pathname"
 require "yaml"
 
-require_relative "fitness_butler/version"
-require_relative "fitness_butler/catalog"
-require_relative "fitness_butler/clients/ruby_openai"
-require_relative "fitness_butler/feed_reader"
-require_relative "fitness_butler/feed_writer"
-require_relative "fitness_butler/prompt_builder"
-require_relative "fitness_butler/schedule_parser"
+require_relative "coach_zed/version"
+require_relative "coach_zed/catalog"
+require_relative "coach_zed/clients/ruby_openai"
+require_relative "coach_zed/feed_reader"
+require_relative "coach_zed/feed_writer"
+require_relative "coach_zed/prompt_builder"
+require_relative "coach_zed/schedule_parser"
 
-class FitnessButler
+class CoachZed
   Result = Data.define(:schedule_path, :ics_path, :webcal_path, :schedule)
 
   Config = Struct.new(
@@ -77,7 +77,7 @@ class FitnessButler
     end
 
     def config_file_paths
-      [".fitness_butler.yml", File.expand_path("~/.config/fitness_butler.yml")]
+      [".coach_zed.yml", File.expand_path("~/.config/coach_zed.yml")]
     end
   end
 

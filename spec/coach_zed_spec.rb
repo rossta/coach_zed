@@ -6,7 +6,7 @@ require "json"
 require "yaml"
 require "tmpdir"
 
-RSpec.describe FitnessButler do
+RSpec.describe CoachZed do
   let(:catalog_dir) { File.expand_path("../../fitness_calendar/workouts", __dir__) }
   let(:consultation_prompt) { "For the next month, improve swing speed while keeping recovery manageable." }
   let(:start_date) { Date.new(2026, 6, 15) }
@@ -198,13 +198,13 @@ RSpec.describe FitnessButler do
       <<~ICAL
         BEGIN:VCALENDAR
         VERSION:2.0
-        PRODID:-//FitnessButler//EN
+        PRODID:-//CoachZed//EN
         CALSCALE:GREGORIAN
         METHOD:PUBLISH
         X-WR-CALNAME:Current Plan
         X-WR-TIMEZONE:America/New_York
         BEGIN:VEVENT
-        UID:existing-1@fitness_butler
+        UID:existing-1@coach_zed
         DTSTAMP:20260601T120000Z
         DTSTART;VALUE=DATE:20260615
         DTEND;VALUE=DATE:20260616
@@ -212,7 +212,7 @@ RSpec.describe FitnessButler do
         DESCRIPTION:Prior week.
         END:VEVENT
         BEGIN:VEVENT
-        UID:existing-2@fitness_butler
+        UID:existing-2@coach_zed
         DTSTAMP:20260601T120000Z
         DTSTART;VALUE=DATE:20260621
         DTEND;VALUE=DATE:20260622
@@ -284,9 +284,9 @@ RSpec.describe FitnessButler do
     end.to raise_error(ArgumentError, /unsupported client/i)
   end
 
-  it "loads config from a local .fitness_butler.yml file" do
+  it "loads config from a local .coach_zed.yml file" do
     Dir.mktmpdir do |dir|
-      config_path = File.join(dir, ".fitness_butler.yml")
+      config_path = File.join(dir, ".coach_zed.yml")
       File.write(
         config_path,
         {
@@ -319,12 +319,12 @@ RSpec.describe FitnessButler do
     end
   end
 
-  it "loads config from ~/.config/fitness_butler.yml when local config is absent" do
+  it "loads config from ~/.config/coach_zed.yml when local config is absent" do
     Dir.mktmpdir do |dir|
       config_dir = File.join(dir, ".config")
       FileUtils.mkdir_p(config_dir)
       File.write(
-        File.join(config_dir, "fitness_butler.yml"),
+        File.join(config_dir, "coach_zed.yml"),
         {
           "workout_catalog_dir" => catalog_dir,
           "output_dir" => File.join(dir, "results"),

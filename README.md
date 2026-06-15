@@ -1,22 +1,22 @@
-# FitnessButler
+# CoachZed
 
-FitnessButler reads a workout catalog, asks an AI client for a day-by-day training plan, and writes schedule JSON plus calendar feeds.
+CoachZed reads a workout catalog, asks an AI client for a day-by-day training plan, and writes schedule JSON plus calendar feeds.
 
 ## Configuration
 
 You can set shared defaults with:
 
 ```ruby
-FitnessButler.configure do |config|
+CoachZed.configure do |config|
   config.workout_catalog_dir = "workouts"
   config.output_dir = "results"
 end
 ```
 
-`FitnessButler.new` also loads defaults from either:
+`CoachZed.new` also loads defaults from either:
 
-- `.fitness_butler.yml` in the current directory
-- `~/.config/fitness_butler.yml`
+- `.coach_zed.yml` in the current directory
+- `~/.config/coach_zed.yml`
 
 If a config file is present, you can initialize with just `client:`.
 
@@ -33,7 +33,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/fitness_butler. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/fitness_butler/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/coach_zed. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/coach_zed/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -41,4 +41,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the FitnessButler project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/fitness_butler/blob/main/CODE_OF_CONDUCT.md).
+Everyone interacting in the CoachZed project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/coach_zed/blob/main/CODE_OF_CONDUCT.md).

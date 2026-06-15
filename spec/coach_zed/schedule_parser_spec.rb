@@ -2,7 +2,7 @@
 
 require "json"
 
-RSpec.describe FitnessButler::ScheduleParser do
+RSpec.describe CoachZed::ScheduleParser do
   it "parses valid schedule JSON" do
     payload = {
       "program_name" => "Test Plan",

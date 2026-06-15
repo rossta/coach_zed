@@ -2,10 +2,10 @@
 
 require "date"
 
-RSpec.describe FitnessButler::PromptBuilder do
+RSpec.describe CoachZed::PromptBuilder do
   let(:catalog) do
     [
-      FitnessButler::Catalog::Entry.new(
+      CoachZed::Catalog::Entry.new(
         path: Pathname("/tmp/workouts/bodyweight/push-up-emom-10-min.md"),
         relative_path: "bodyweight/push-up-emom-10-min.md",
         title: "Push Up EMOM 10 Min",

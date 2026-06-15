@@ -3,7 +3,7 @@
 require "date"
 require "time"
 
-class FitnessButler
+class CoachZed
   class FeedWriter
     def initialize(schedule:, start_date:, existing_feed_content: nil)
       @schedule = schedule
@@ -39,7 +39,7 @@ class FitnessButler
       [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//FitnessButler//EN",
+        "PRODID:-//CoachZed//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         "X-WR-CALNAME:#{escape(schedule_name)}",
@@ -52,7 +52,7 @@ class FitnessButler
         date = start_date + (day.fetch("day_number").to_i - 1)
         [
           "BEGIN:VEVENT",
-          "UID:#{schedule.fetch("schedule_id")}-#{format("%02d", day.fetch("day_number").to_i)}@fitness_butler",
+          "UID:#{schedule.fetch("schedule_id")}-#{format("%02d", day.fetch("day_number").to_i)}@coach_zed",
           "DTSTAMP:#{generated_timestamp}",
           "DTSTART;VALUE=DATE:#{date.strftime("%Y%m%d")}",
           "DTEND;VALUE=DATE:#{(date + 1).strftime("%Y%m%d")}",

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "openai"
-require "fitness_butler"
+require "coach_zed"
 
 Dir[File.join(__dir__, "support/**/*.rb")].sort.each do |file|
   require file
@@ -9,11 +9,11 @@ end
 
 RSpec.configure do |config|
   config.before do
-    FitnessButler.reset_config!
+    CoachZed.reset_config!
   end
 
   config.after do
-    FitnessButler.reset_config!
+    CoachZed.reset_config!
   end
 
   # Enable flags like --only-failures and --next-failure

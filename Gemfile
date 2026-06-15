@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in fitness_butler.gemspec
+# Specify your gem's dependencies in coach_zed.gemspec
 gemspec
 
 gem "irb"

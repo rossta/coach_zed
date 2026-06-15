@@ -2,7 +2,7 @@
 
 require "date"
 
-RSpec.describe FitnessButler::FeedWriter do
+RSpec.describe CoachZed::FeedWriter do
   let(:schedule) do
     {
       "schedule_id" => "abc123",
@@ -44,13 +44,13 @@ RSpec.describe FitnessButler::FeedWriter do
     existing_feed = <<~ICAL
       BEGIN:VCALENDAR
       VERSION:2.0
-      PRODID:-//FitnessButler//EN
+      PRODID:-//CoachZed//EN
       CALSCALE:GREGORIAN
       METHOD:PUBLISH
       X-WR-CALNAME:Test Plan
       X-WR-TIMEZONE:America/New_York
       BEGIN:VEVENT
-      UID:existing-1@fitness_butler
+      UID:existing-1@coach_zed
       DTSTAMP:20260601T120000Z
       DTSTART;VALUE=DATE:20260615
       DTEND;VALUE=DATE:20260616

@@ -2,7 +2,7 @@
 
 require "date"
 
-class FitnessButler
+class CoachZed
   class FeedReader
     Event = Struct.new(:date, :summary, :description, keyword_init: true)
 

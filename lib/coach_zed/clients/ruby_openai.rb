@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class FitnessButler
+class CoachZed
   module Clients
     class RubyOpenAI
       def initialize(client:, model: "gpt-4.1")

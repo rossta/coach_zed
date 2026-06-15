@@ -2,7 +2,7 @@
 
 require "json"
 
-class FitnessButler
+class CoachZed
   class PromptBuilder
     def initialize(consultation_prompt:, catalog:, start_date:, schedule_key:, generation_days:, existing_feed_context: nil)
       @consultation_prompt = consultation_prompt

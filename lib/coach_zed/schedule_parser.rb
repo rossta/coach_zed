@@ -2,7 +2,7 @@
 
 require "json"
 
-class FitnessButler
+class CoachZed
   class ScheduleParser
     class Error < StandardError; end
 

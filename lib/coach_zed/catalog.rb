@@ -3,7 +3,7 @@
 require "digest"
 require "pathname"
 
-class FitnessButler
+class CoachZed
   module Catalog
     Entry = Struct.new(
       :path,

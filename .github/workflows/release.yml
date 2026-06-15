@@ -41,7 +41,7 @@ jobs:
         run: |
           VERSION="$(cat "$RUNNER_TEMP/release/version.txt")"
           NOTES_FILE="$RUNNER_TEMP/release/release-notes.md"
-          CURRENT_VERSION="$(ruby -e 'require "./lib/fitness_butler/version"; puts FitnessButler::VERSION')"
+          CURRENT_VERSION="$(ruby -e 'require "./lib/coach_zed/version"; puts CoachZed::VERSION')"
 
           if [ "$VERSION" = "$CURRENT_VERSION" ]; then
             echo "No version bump detected. Skipping release."
@@ -61,11 +61,11 @@ jobs:
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
-          VERSION="$VERSION" ruby -e 'path = "lib/fitness_butler/version.rb"; version = ENV.fetch("VERSION"); contents = File.read(path); contents = contents.sub(/VERSION = ".*"/, "VERSION = \"#{version}\""); File.write(path, contents)'
+          VERSION="$VERSION" ruby -e 'path = "lib/coach_zed/version.rb"; version = ENV.fetch("VERSION"); contents = File.read(path); contents = contents.sub(/VERSION = ".*"/, "VERSION = \"#{version}\""); File.write(path, contents)'
 
       - name: Build gem
         if: ${{ steps.release.outputs.skip_release != 'true' }}
-        run: gem build fitness_butler.gemspec
+        run: gem build coach_zed.gemspec
 
       - name: Push gem to RubyGems
         if: ${{ steps.release.outputs.skip_release != 'true' }}
