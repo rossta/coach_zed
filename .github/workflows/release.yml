@@ -91,25 +91,13 @@ jobs:
 
       - name: Build gem
         if: ${{ steps.release.outputs.skip_release != 'true' }}
-        run: gem build coach_zed.gemspec
-
-      - name: Locate built gem
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
-        id: gemfile
-        run: |
-          GEM_FILE="$(find pkg -maxdepth 1 -name '*.gem' -print -quit)"
-          if [ -z "$GEM_FILE" ]; then
-            echo "Unable to locate built gem artifact"
-            exit 1
-          fi
-
-          echo "path=$GEM_FILE" >> "$GITHUB_OUTPUT"
+        run: bundle exec rake build
 
       - name: Push gem to RubyGems
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         env:
           GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-        run: gem push "${{ steps.gemfile.outputs.path }}"
+        run: gem push pkg/*.gem
 
       - name: Publish GitHub release
         if: ${{ steps.release.outputs.skip_release != 'true' }}
@@ -118,4 +106,4 @@ jobs:
           tag_name: ${{ steps.release.outputs.tag }}
           name: ${{ steps.release.outputs.tag }}
           body_path: CHANGELOG.md
-          files: ${{ steps.gemfile.outputs.path }}
+          files: pkg/*.gem
