@@ -2,6 +2,29 @@
 
 FitnessButler reads a workout catalog, asks an AI client for a day-by-day training plan, and writes schedule JSON plus calendar feeds.
 
+## Configuration
+
+You can set shared defaults with:
+
+```ruby
+FitnessButler.configure do |config|
+  config.workout_catalog_dir = "workouts"
+  config.output_dir = "results"
+end
+```
+
+`FitnessButler.new` also loads defaults from either:
+
+- `.fitness_butler.yml` in the current directory
+- `~/.config/fitness_butler.yml`
+
+If a config file is present, you can initialize with just `client:`.
+
+Generated files are written beneath `output_dir`:
+
+- `output_dir/schedules`
+- `output_dir/feeds`
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

@@ -4,6 +4,7 @@ require "date"
 require "digest"
 require "json"
 require "pathname"
+require "yaml"
 
 require_relative "fitness_butler/version"
 require_relative "fitness_butler/catalog"
@@ -14,23 +15,90 @@ require_relative "fitness_butler/prompt_builder"
 require_relative "fitness_butler/schedule_parser"
 
 class FitnessButler
-  Result = Struct.new(:schedule_path, :ics_path, :webcal_path, :schedule, keyword_init: true)
+  Result = Data.define(:schedule_path, :ics_path, :webcal_path, :schedule)
+
+  Config = Struct.new(
+    :workout_catalog_dir,
+    :model,
+    :output_dir,
+    :feed_output_basename,
+    :existing_feed_path,
+    keyword_init: true
+  ) do
+    def apply(hash)
+      hash.each do |key, value|
+        public_send("#{key}=", value) if respond_to?("#{key}=")
+      end
+    end
+  end
+
+  class << self
+    def config
+      @config ||= default_config
+      load_config_file
+      @config
+    end
+
+    def configure
+      load_config_file
+      yield config
+    end
+
+    def load_config_file
+      return if @config_file_loaded
+
+      @config ||= default_config
+
+      config_file_paths.each do |path|
+        next unless File.exist?(path)
+
+        parsed = YAML.load_file(path)
+        next unless parsed.is_a?(Hash)
+
+        @config.apply(parsed.transform_keys(&:to_sym))
+        @config_file_loaded = true
+        return path
+      end
+
+      @config_file_loaded = true
+      nil
+    end
+
+    def reset_config!
+      @config = nil
+      @config_file_loaded = false
+    end
+
+    def default_config
+      Config.new(
+        model: "gpt-4.1",
+        output_dir: "results"
+      )
+    end
+
+    def config_file_paths
+      [".fitness_butler.yml", File.expand_path("~/.config/fitness_butler.yml")]
+    end
+  end
 
   def initialize(
-    workout_catalog_dir:,
     client:,
-    model: "gpt-4.1",
-    schedule_output_dir: "schedules",
-    feed_output_dir: "feeds",
+    workout_catalog_dir: nil,
+    model: nil,
+    output_dir: nil,
     feed_output_basename: nil,
     existing_feed_path: nil
   )
-    @workout_catalog_dir = Pathname(workout_catalog_dir)
-    @ai_client = wrap_client(client, model:)
-    @schedule_output_dir = Pathname(schedule_output_dir)
-    @feed_output_dir = Pathname(feed_output_dir)
-    @feed_output_basename = feed_output_basename
-    @existing_feed_path = existing_feed_path && Pathname(existing_feed_path)
+    config = self.class.config
+
+    @workout_catalog_dir = Pathname(workout_catalog_dir || config.workout_catalog_dir || raise(ArgumentError, "workout_catalog_dir is required"))
+    @ai_client = wrap_client(client, model: model || config.model)
+    @output_dir = Pathname(output_dir || config.output_dir || "results")
+    @schedule_output_dir = @output_dir.join("schedules")
+    @feed_output_dir = @output_dir.join("feeds")
+    @feed_output_basename = feed_output_basename.nil? ? config.feed_output_basename : feed_output_basename
+    resolved_existing_feed_path = existing_feed_path.nil? ? config.existing_feed_path : existing_feed_path
+    @existing_feed_path = resolved_existing_feed_path && Pathname(resolved_existing_feed_path)
   end
 
   def generate_schedule(start_date:, consultation_prompt: nil, consultation_prompt_path: nil)
@@ -66,7 +134,7 @@ class FitnessButler
 
   private
 
-  attr_reader :workout_catalog_dir, :ai_client, :schedule_output_dir, :feed_output_dir, :feed_output_basename, :existing_feed_path
+  attr_reader :workout_catalog_dir, :ai_client, :output_dir, :schedule_output_dir, :feed_output_dir, :feed_output_basename, :existing_feed_path
 
   def wrap_client(client, model:)
     return client if client.is_a?(Clients::RubyOpenAI)

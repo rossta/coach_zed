@@ -8,6 +8,14 @@ Dir[File.join(__dir__, "support/**/*.rb")].sort.each do |file|
 end
 
 RSpec.configure do |config|
+  config.before do
+    FitnessButler.reset_config!
+  end
+
+  config.after do
+    FitnessButler.reset_config!
+  end
+
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
 

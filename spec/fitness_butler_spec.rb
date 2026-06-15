@@ -3,6 +3,7 @@
 require "date"
 require "fileutils"
 require "json"
+require "yaml"
 require "tmpdir"
 
 RSpec.describe FitnessButler do
@@ -108,8 +109,7 @@ RSpec.describe FitnessButler do
     coach = described_class.new(
       workout_catalog_dir: catalog_dir,
       client: client,
-      schedule_output_dir: File.join(@tmpdir, "schedules"),
-      feed_output_dir: File.join(@tmpdir, "feeds"),
+      output_dir: File.join(@tmpdir, "results"),
       feed_output_basename: "current"
     )
 
@@ -149,8 +149,7 @@ RSpec.describe FitnessButler do
     coach = described_class.new(
       workout_catalog_dir: catalog_dir,
       client: first_client,
-      schedule_output_dir: File.join(@tmpdir, "schedules"),
-      feed_output_dir: File.join(@tmpdir, "feeds"),
+      output_dir: File.join(@tmpdir, "results"),
       feed_output_basename: "current"
     )
 
@@ -176,8 +175,7 @@ RSpec.describe FitnessButler do
     second_coach = described_class.new(
       workout_catalog_dir: catalog_dir,
       client: second_client,
-      schedule_output_dir: File.join(@tmpdir, "schedules"),
-      feed_output_dir: File.join(@tmpdir, "feeds"),
+      output_dir: File.join(@tmpdir, "results"),
       feed_output_basename: "current"
     )
 
@@ -237,8 +235,7 @@ RSpec.describe FitnessButler do
     coach = described_class.new(
       workout_catalog_dir: catalog_dir,
       client: client,
-      schedule_output_dir: File.join(@tmpdir, "schedules"),
-      feed_output_dir: File.join(@tmpdir, "feeds"),
+      output_dir: File.join(@tmpdir, "results"),
       feed_output_basename: "current",
       existing_feed_path: existing_feed_path
     )
@@ -270,8 +267,7 @@ RSpec.describe FitnessButler do
     coach = described_class.new(
       workout_catalog_dir: catalog_dir,
       client: client,
-      schedule_output_dir: File.join(@tmpdir, "schedules"),
-      feed_output_dir: File.join(@tmpdir, "feeds")
+      output_dir: File.join(@tmpdir, "results")
     )
 
     expect do
@@ -286,5 +282,79 @@ RSpec.describe FitnessButler do
         client: Object.new
       )
     end.to raise_error(ArgumentError, /unsupported client/i)
+  end
+
+  it "loads config from a local .fitness_butler.yml file" do
+    Dir.mktmpdir do |dir|
+      config_path = File.join(dir, ".fitness_butler.yml")
+      File.write(
+        config_path,
+        {
+          "workout_catalog_dir" => catalog_dir,
+          "output_dir" => File.join(dir, "results"),
+          "feed_output_basename" => "current"
+        }.to_yaml
+      )
+
+      client = openai_client_with(
+        "choices" => [
+          {
+            "message" => {
+              "content" => schedule_response
+            }
+          }
+        ]
+      ).first
+
+      Dir.chdir(dir) do
+        coach = described_class.new(client: client)
+        result = coach.generate_schedule(
+          consultation_prompt: consultation_prompt,
+          start_date: start_date
+        )
+
+        expect(result.ics_path.basename.to_s).to eq("current.ics")
+        expect(File).to exist(result.schedule_path)
+      end
+    end
+  end
+
+  it "loads config from ~/.config/fitness_butler.yml when local config is absent" do
+    Dir.mktmpdir do |dir|
+      config_dir = File.join(dir, ".config")
+      FileUtils.mkdir_p(config_dir)
+      File.write(
+        File.join(config_dir, "fitness_butler.yml"),
+        {
+          "workout_catalog_dir" => catalog_dir,
+          "output_dir" => File.join(dir, "results"),
+          "feed_output_basename" => "current"
+        }.to_yaml
+      )
+
+      client = openai_client_with(
+        "choices" => [
+          {
+            "message" => {
+              "content" => schedule_response
+            }
+          }
+        ]
+      ).first
+
+      original_home = ENV["HOME"]
+      ENV["HOME"] = dir
+      begin
+        coach = described_class.new(client: client)
+        result = coach.generate_schedule(
+          consultation_prompt: consultation_prompt,
+          start_date: start_date
+        )
+
+        expect(result.webcal_path.basename.to_s).to eq("current.webcal")
+      ensure
+        ENV["HOME"] = original_home
+      end
+    end
   end
 end
