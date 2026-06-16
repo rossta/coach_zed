@@ -66,6 +66,13 @@ jobs:
         run: |
           npx --yes conventional-changelog-cli -p conventionalcommits -i CHANGELOG.md -s
 
+      - name: Build gem
+        if: ${{ steps.release.outputs.skip_release != 'true' }}
+        run: |
+          bundle config set frozen false
+          bundle config set deployment false
+          bundle exec rake build
+
       - name: Configure git author
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
@@ -76,7 +83,7 @@ jobs:
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
-          git add CHANGELOG.md lib/coach_zed/version.rb
+          git add CHANGELOG.md Gemfile.lock lib/coach_zed/version.rb
           git commit -m "chore(release): v$VERSION [skip release]"
 
       - name: Tag release
@@ -88,10 +95,6 @@ jobs:
       - name: Push release commit and tag
         if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: git push origin HEAD:main --follow-tags
-
-      - name: Build gem
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
-        run: bundle exec rake build
 
       - name: Push gem to RubyGems
         if: ${{ steps.release.outputs.skip_release != 'true' }}
