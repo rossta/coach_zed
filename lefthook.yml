@@ -21,14 +21,13 @@ pre-commit:
   parallel: true
   jobs:
     - name: standard
-      glob: "*.rb"
-      run: bundle exec standardrb -- {all_files}
-      # exclude:
-      #   - lib/example.rb
+      glob: "**/*.rb"
+      run: bundle exec standardrb --fix --format progress -- {staged_files}
 
     - name: rspec
-      run: bundle exec rspec -- {files}
+      glob: "{lib,spec}/**/*.rb"
+      run: bundle exec rspec --format progress
 
-    - name: "rbs"
+    - name: steep
       glob: "{lib,sig}/**/*.{rb,rbs}"
       run: bundle exec steep check
