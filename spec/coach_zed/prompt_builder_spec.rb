@@ -33,12 +33,13 @@ RSpec.describe CoachZed::PromptBuilder do
       existing_feed_context: "2026-06-08 | Existing workout"
     ).build
 
-    expect(prompt).to include("Return JSON only")
+    expect(prompt).to include("Return strict JSON only")
     expect(prompt).to include("For the next month, improve push-up volume.")
     expect(prompt).to include("Push Up EMOM 10 Min")
     expect(prompt).to include("Start date: 2026-06-15")
     expect(prompt).to include("program_length_days")
     expect(prompt).to include("Produce exactly 28 entries")
     expect(prompt).to include("Existing feed context")
+    expect(prompt).to include("Required JSON Schema")
   end
 end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../schedule_schema"
+
 class CoachZed
   module Clients
     class RubyOpenAI
@@ -11,7 +13,15 @@ class CoachZed
       def generate(prompt:)
         response = client.chat(parameters: {
           model: model,
-          messages: [{role: "user", content: prompt}]
+          messages: [{role: "user", content: prompt}],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "coach_zed_schedule",
+              schema: CoachZed::ScheduleSchema.to_h,
+              strict: true
+            }
+          }
         })
         extract_content(response)
       end

@@ -13,7 +13,20 @@ RSpec.describe CoachZed::Clients::RubyOpenAI do
       ]
     }
 
-    expect(client).to receive(:chat).with(parameters: hash_including(:model, :messages)).and_return(response)
+    expect(client).to receive(:chat).with(
+      parameters: hash_including(
+        :model,
+        :messages,
+        response_format: {
+          type: "json_schema",
+          json_schema: hash_including(
+            name: "coach_zed_schedule",
+            schema: CoachZed::ScheduleSchema.to_h,
+            strict: true
+          )
+        }
+      )
+    ).and_return(response)
 
     content = described_class.new(client: client).generate(prompt: "Build a schedule.")
 

@@ -11,6 +11,7 @@ require_relative "coach_zed/catalog"
 require_relative "coach_zed/clients/ruby_openai"
 require_relative "coach_zed/feed_reader"
 require_relative "coach_zed/feed_writer"
+require_relative "coach_zed/schedule_schema"
 require_relative "coach_zed/prompt_builder"
 require_relative "coach_zed/schedule_parser"
 

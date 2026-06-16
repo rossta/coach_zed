@@ -1,6 +1,11 @@
 class CoachZed
   VERSION: String
 
+  module ScheduleSchema
+    def to_h: -> Hash[Symbol, untyped]
+    def self.to_h: -> Hash[Symbol, untyped]
+  end
+
   class Result
     attr_reader schedule_path: Pathname
     attr_reader ics_path: Pathname

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require_relative "schedule_schema"
 
 class CoachZed
   class PromptBuilder
@@ -17,26 +18,11 @@ class CoachZed
       <<~PROMPT
         You are a training coach. Build a daily training schedule for the athlete using only the provided catalog.
 
-        Return JSON only. Do not wrap it in markdown fences or commentary.
+        Return strict JSON only. Do not wrap it in markdown fences or commentary.
+        Every string value must be valid JSON text on a single line. Do not emit literal newlines, tabs, or other control characters inside string values.
 
-        Required schema:
-        {
-          "program_name": string,
-          "program_length_days": integer,
-          "days": [
-            {
-              "day_number": integer,
-              "day_type": "workout" or "rest",
-              "workout": {
-                "title": string,
-                "catalog_path": string,
-                "domain": string,
-                "session_duration": string
-              } or null,
-              "notes": string
-            }
-          ]
-        }
+        Required JSON Schema:
+        #{JSON.pretty_generate(CoachZed::ScheduleSchema.to_h)}
 
         Rules:
         - Produce exactly #{generation_days} entries for the requested time period.
