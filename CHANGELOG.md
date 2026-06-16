@@ -1,3 +1,9 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.4.4...v) (2026-06-16)
+
+### Bug Fixes
+
+* add securerandom to gemfile ([cf5b86f](https://github.com/rossta/coach_zed/commit/cf5b86fa08fa8730293dcde8342a7a57c967b69a))
+* update bundler ([15a717e](https://github.com/rossta/coach_zed/commit/15a717e28848f00e3cbff4a978f964d1719ff7c0))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.3...v) (2026-06-16)
 
 ### Bug Fixes
