@@ -7,3 +7,8 @@
 - Keep the gem focused on parsing the workout catalog, building prompts, parsing JSON schedules, and writing `.ics` / `.webcal` feeds.
 - Use `standardrb` and `rspec` for verification.
 - The release workflow is driven from GitHub Actions and uses conventional commits plus `git-mkver`.
+
+## Ruby
+
+- Use the Ruby version in `.ruby-version` for any Ruby commands.
+- If `chruby` is available on the system, activate the configured `.ruby-version` with `chruby` before running Ruby commands.
