@@ -24,7 +24,6 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.5"
           bundler-cache: true
 
       - name: Check formatting
@@ -42,7 +41,6 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.5"
           bundler-cache: true
 
       - name: Run specs
@@ -60,7 +58,6 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.5"
           bundler-cache: true
 
       - name: Type check
