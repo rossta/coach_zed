@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - CHANGELOG.md
+      - Gemfile.lock
+      - lib/coach_zed/version.rb
 
   pull_request:
 
@@ -11,7 +15,6 @@ jobs:
   standard:
     name: Standard
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +33,6 @@ jobs:
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +51,6 @@ jobs:
   steep:
     name: Steep
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
 
     steps:
       - uses: actions/checkout@v4

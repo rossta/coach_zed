@@ -16,7 +16,7 @@ permissions:
 jobs:
   release:
     environment: release
-    if: ${{ github.event.workflow_run.conclusion == 'success' && !contains(github.event.workflow_run.head_commit.message || '', '[skip release]') }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -44,58 +44,42 @@ jobs:
       - name: Determine release version
         id: release
         run: |
-          VERSION="$(git mkver -c mkver.conf next 2>/dev/null || true)"
-
-          if [ -z "$VERSION" ]; then
-            echo "No version bump detected. Skipping release."
-            echo "skip_release=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "skip_release=false" >> "$GITHUB_OUTPUT"
+          VERSION="$(git mkver -c mkver.conf next)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update version file for packaging
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
           git mkver -c mkver.conf patch
 
       - name: Update changelog
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           npx --yes conventional-changelog-cli -p conventionalcommits -i CHANGELOG.md -s
 
       - name: Configure git author
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Commit release changes
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
           git add CHANGELOG.md Gemfile.lock lib/coach_zed/version.rb
-          git commit -m "chore(release): v$VERSION [skip release]"
+          git commit -m "chore(release): v$VERSION"
 
       - name: Tag release
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
           git tag -a "v$VERSION" -m "Release v$VERSION"
 
       - name: Push release commit and tag
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         run: git push origin HEAD:main --follow-tags
 
       - name: Publish gem to RubyGems
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         uses: rubygems/release-gem@v1
 
       - name: Publish GitHub release
-        if: ${{ steps.release.outputs.skip_release != 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release.outputs.tag }}
