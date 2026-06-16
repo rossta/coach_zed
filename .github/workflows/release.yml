@@ -53,6 +53,12 @@ jobs:
           VERSION="${{ steps.release.outputs.version }}"
           git mkver -c mkver.conf patch
 
+      - name: Refresh Bundler lockfile
+        run: bundle install
+        env:
+          BUNDLE_FROZEN: "false"
+          BUNDLE_DEPLOYMENT: "false"
+
       - name: Update changelog
         run: |
           npx --yes conventional-changelog-cli -p conventionalcommits -i CHANGELOG.md -s
@@ -78,6 +84,9 @@ jobs:
 
       - name: Publish gem to RubyGems
         uses: rubygems/release-gem@v1
+        env:
+          BUNDLE_FROZEN: "false"
+          BUNDLE_DEPLOYMENT: "false"
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
