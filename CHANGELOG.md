@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.4.6...v) (2026-06-16)
+
+### Features
+
+* upgrade to ruby 4 ([20532a3](https://github.com/rossta/coach_zed/commit/20532a3f8d545c624467a459256f297e07fdb0b5))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.5...v) (2026-06-16)
 
 ### Bug Fixes
