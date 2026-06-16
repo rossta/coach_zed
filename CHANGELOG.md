@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.4.3...v) (2026-06-16)
+
+### Bug Fixes
+
+* refresh bundler lockfile during release ([1738b38](https://github.com/rossta/coach_zed/commit/1738b385a223e16dd6a795c7cda5ce330bf667c9))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.2...v) (2026-06-16)
 
 ### Bug Fixes
