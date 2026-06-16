@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.0...v) (2026-06-16)
+
+### Bug Fixes
+
+* advertise structured JSON schema ([af719a5](https://github.com/rossta/coach_zed/commit/af719a535cfadab87a7013207132c08e1d6c9ae0))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.6...v) (2026-06-16)
 
 ### Features
