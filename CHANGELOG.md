@@ -1,3 +1,11 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.4.2...v) (2026-06-16)
+
+### Bug Fixes
+
+* align release workflow with git-mkver ([254bdd1](https://github.com/rossta/coach_zed/commit/254bdd1b055f55486598819c28135cfe8327c02e))
+* narrow release bump policy ([0870076](https://github.com/rossta/coach_zed/commit/0870076a0e028d35e6fd461225c2bcaa4332f365))
+* simplify release version detection ([8f5f238](https://github.com/rossta/coach_zed/commit/8f5f238e7c246b47dc8f1ac49fe103731a19c113))
+* switch release to trusted publishing ([350eb52](https://github.com/rossta/coach_zed/commit/350eb529b0e6aebe359bdb96ffb7e640691a177d))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.1...v) (2026-06-16)
 
 ### Bug Fixes
