@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.4.5...v) (2026-06-16)
+
+### Bug Fixes
+
+* update release env ([2aa7c62](https://github.com/rossta/coach_zed/commit/2aa7c62ce0e22facd15154d98b64250162b80939))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.4...v) (2026-06-16)
 
 ### Bug Fixes
