@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.4.1...v) (2026-06-16)
+
+### Bug Fixes
+
+* bump version ([1ad1eb1](https://github.com/rossta/coach_zed/commit/1ad1eb1b8c6c6babd5fd32a0185d4752682dd0fc))
 ## [](https://github.com/rossta/coach_zed/compare/v0.4.0...v) (2026-06-15)
 
 ### Bug Fixes
