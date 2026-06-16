@@ -52,6 +52,7 @@ GEM
       reline (>= 0.4.2)
     json (2.19.5)
     language_server-protocol (3.17.0.5)
+    lefthook (2.1.9)
     lint_roller (1.1.0)
     listen (3.10.0)
       logger
@@ -178,6 +179,7 @@ PLATFORMS
 DEPENDENCIES
   coach_zed!
   irb
+  lefthook
   rake (~> 13.0)
   rbs (~> 3.9)
   rspec (~> 3.0)
@@ -211,6 +213,7 @@ CHECKSUMS
   irb (1.18.0) sha256=de9454a0703a54704b9811a5ef31a60c86949fbf4013fcf244fabc7c775248e3
   json (2.19.5) sha256=218a18553e4801d579ca7e0f5bc72bafd776d7397238a1fb4e74db5b0a812c59
   language_server-protocol (3.17.0.5) sha256=fd1e39a51a28bf3eec959379985a72e296e9f9acfce46f6a79d31ca8760803cc
+  lefthook (2.1.9) sha256=2d4d2e028d4ac4b265675c1180fe1f7c50230200630e65c3aff7d3ed90a1a334
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   listen (3.10.0) sha256=c6e182db62143aeccc2e1960033bebe7445309c7272061979bb098d03760c9d2
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203

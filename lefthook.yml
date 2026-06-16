@@ -1,0 +1,34 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+# pre-push:
+#   jobs:
+#     - name: packages audit
+#       tags:
+#         - frontend
+#         - security
+#       run: yarn audit
+#
+#     - name: gems audit
+#       tags:
+#         - backend
+#         - security
+#       run: bundle audit
+#
+pre-commit:
+  parallel: true
+  jobs:
+    - name: standard
+      glob: "*.rb"
+      run: bundle exec standardrb -- {all_files}
+      # exclude:
+      #   - lib/example.rb
+
+    - name: rspec
+      run: bundle exec rspec -- {files}
+
+    - name: "rbs"
+      glob: "{lib,sig}/**/*.{rb,rbs}"
+      run: bundle exec steep check

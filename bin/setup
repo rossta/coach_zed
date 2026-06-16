@@ -3,6 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
+lefthook install # https://github.com/evilmartians/lefthook
 bundle install
 
 # Do any other automated setup that you need to do here
