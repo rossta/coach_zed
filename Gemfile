@@ -16,3 +16,5 @@ gem "steep", "~> 1.8"
 gem "standard", "~> 1.3"
 
 gem "lefthook"
+
+gem "securerandom", "~> 0.4.1"

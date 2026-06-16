@@ -184,6 +184,7 @@ DEPENDENCIES
   rbs (~> 3.9)
   rspec (~> 3.0)
   ruby-openai (~> 7.0)
+  securerandom (~> 0.4.1)
   standard (~> 1.3)
   steep (~> 1.8)
 
