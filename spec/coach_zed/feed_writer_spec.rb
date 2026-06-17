@@ -33,6 +33,7 @@ RSpec.describe CoachZed::FeedWriter do
     feed = described_class.new(schedule:, start_date: Date.new(2026, 6, 15)).build
 
     expect(feed).to include("BEGIN:VCALENDAR")
+    expect(feed).to include("X-WR-CALNAME:Test Plan")
     expect(feed).to include("SUMMARY:Push Up EMOM 10 Min")
     expect(feed).to include("SUMMARY:Rest")
     expect(feed).to include("DTSTART;VALUE=DATE:20260615")
@@ -69,5 +70,15 @@ RSpec.describe CoachZed::FeedWriter do
     expect(feed).to include("SUMMARY:Existing Workout")
     expect(feed).to include("SUMMARY:Push Up EMOM 10 Min")
     expect(feed.scan("BEGIN:VEVENT").length).to eq(3)
+  end
+
+  it "uses a configured calendar title when provided" do
+    feed = described_class.new(
+      schedule:,
+      start_date: Date.new(2026, 6, 15),
+      calendar_name: "Morning Training"
+    ).build
+
+    expect(feed).to include("X-WR-CALNAME:Morning Training")
   end
 end

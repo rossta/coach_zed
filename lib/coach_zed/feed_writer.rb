@@ -5,10 +5,11 @@ require "time"
 
 class CoachZed
   class FeedWriter
-    def initialize(schedule:, start_date:, existing_feed_content: nil)
+    def initialize(schedule:, start_date:, existing_feed_content: nil, calendar_name: nil)
       @schedule = schedule
       @start_date = start_date
       @existing_feed_content = existing_feed_content
+      @calendar_name = calendar_name
     end
 
     def build
@@ -21,7 +22,7 @@ class CoachZed
 
     private
 
-    attr_reader :schedule, :start_date, :existing_feed_content
+    attr_reader :schedule, :start_date, :existing_feed_content, :calendar_name
 
     def fresh_feed
       lines = header_lines
@@ -64,7 +65,7 @@ class CoachZed
     end
 
     def schedule_name
-      schedule["program_name"] || "Training Schedule"
+      calendar_name || schedule["program_name"] || "Training Schedule"
     end
 
     def generated_timestamp

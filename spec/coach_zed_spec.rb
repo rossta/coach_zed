@@ -158,6 +158,32 @@ RSpec.describe CoachZed do
     expect(result.webcal_path.basename.to_s).to eq("schedule.webcal")
   end
 
+  it "uses a configured feed title for new feeds" do
+    client = openai_client_with(
+      "choices" => [
+        {
+          "message" => {
+            "content" => schedule_response
+          }
+        }
+      ]
+    ).first
+    coach = described_class.new(
+      workout_catalog_dir: catalog_dir,
+      client: client,
+      output_dir: File.join(@tmpdir, "results"),
+      feed_output_basename: "current",
+      feed_title: "Ross Training Plan"
+    )
+
+    result = coach.generate_schedule(
+      consultation_prompt: consultation_prompt,
+      start_date: start_date
+    )
+
+    expect(File.read(result.ics_path)).to include("X-WR-CALNAME:Ross Training Plan")
+  end
+
   it "accepts a consultation prompt file path and overwrites existing feeds" do
     prompt_path = File.join(@tmpdir, "consultation.txt")
     File.write(prompt_path, consultation_prompt)
@@ -376,7 +402,8 @@ RSpec.describe CoachZed do
         {
           "workout_catalog_dir" => catalog_dir,
           "output_dir" => File.join(dir, "results"),
-          "feed_output_basename" => "current"
+          "feed_output_basename" => "current",
+          "feed_title" => "Configured Plan"
         }.to_yaml
       )
 
@@ -399,6 +426,7 @@ RSpec.describe CoachZed do
 
         expect(result.ics_path.basename.to_s).to eq("current.ics")
         expect(File).to exist(result.schedule_path)
+        expect(File.read(result.ics_path)).to include("X-WR-CALNAME:Configured Plan")
       end
     end
   end
@@ -412,7 +440,8 @@ RSpec.describe CoachZed do
         {
           "workout_catalog_dir" => catalog_dir,
           "output_dir" => File.join(dir, "results"),
-          "feed_output_basename" => "current"
+          "feed_output_basename" => "current",
+          "feed_title" => "Home Configured Plan"
         }.to_yaml
       )
 
@@ -436,6 +465,7 @@ RSpec.describe CoachZed do
         )
 
         expect(result.webcal_path.basename.to_s).to eq("current.webcal")
+        expect(File.read(result.ics_path)).to include("X-WR-CALNAME:Home Configured Plan")
       ensure
         ENV["HOME"] = original_home
       end

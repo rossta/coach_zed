@@ -19,19 +19,21 @@ class CoachZed
   Result = Data.define(:schedule_path, :ics_path, :webcal_path, :schedule)
 
   class Config
-    attr_accessor :workout_catalog_dir, :model, :output_dir, :feed_output_basename, :existing_feed_path
+    attr_accessor :workout_catalog_dir, :model, :output_dir, :feed_output_basename, :feed_title, :existing_feed_path
 
     def initialize(
       workout_catalog_dir: nil,
       model: nil,
       output_dir: nil,
       feed_output_basename: nil,
+      feed_title: nil,
       existing_feed_path: nil
     )
       @workout_catalog_dir = workout_catalog_dir
       @model = model
       @output_dir = output_dir
       @feed_output_basename = feed_output_basename
+      @feed_title = feed_title
       @existing_feed_path = existing_feed_path
     end
 
@@ -97,6 +99,7 @@ class CoachZed
     model: nil,
     output_dir: nil,
     feed_output_basename: nil,
+    feed_title: nil,
     existing_feed_path: nil
   )
     config = self.class.config
@@ -108,6 +111,7 @@ class CoachZed
     @schedule_output_dir = @output_dir.join("schedules")
     @feed_output_dir = @output_dir.join("feeds")
     @feed_output_basename = feed_output_basename.nil? ? config.feed_output_basename : feed_output_basename
+    @feed_title = feed_title.nil? ? config.feed_title : feed_title
     resolved_existing_feed_path = existing_feed_path.nil? ? config.existing_feed_path : existing_feed_path
     @existing_feed_path = resolved_existing_feed_path && Pathname(resolved_existing_feed_path)
   end
@@ -146,7 +150,7 @@ class CoachZed
 
   private
 
-  attr_reader :workout_catalog_dir, :ai_client, :output_dir, :schedule_output_dir, :feed_output_dir, :feed_output_basename, :existing_feed_path
+  attr_reader :workout_catalog_dir, :ai_client, :output_dir, :schedule_output_dir, :feed_output_dir, :feed_output_basename, :feed_title, :existing_feed_path
 
   def wrap_client(client, model:)
     return client if client.is_a?(Clients::RubyOpenAI)
@@ -277,7 +281,8 @@ class CoachZed
     feed = FeedWriter.new(
       schedule:,
       start_date:,
-      existing_feed_content: existing_feed&.feed_content
+      existing_feed_content: existing_feed&.feed_content,
+      calendar_name: feed_title
     ).build
     ics_path = base_path.sub_ext(".ics")
     webcal_path = base_path.sub_ext(".webcal")
