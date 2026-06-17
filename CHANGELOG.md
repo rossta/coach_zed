@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.5...v) (2026-06-17)
+
+### Bug Fixes
+
+* allow configured feed titles ([f9e6066](https://github.com/rossta/coach_zed/commit/f9e606623c58308fc4c5eb112c81e7212a538ce4))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.4...v) (2026-06-17)
 
 ### Bug Fixes
