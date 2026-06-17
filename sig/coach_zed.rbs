@@ -82,9 +82,9 @@ class CoachZed
   def catalog_digest: (Array[CoachZed::Catalog::Entry] catalog) -> String
   def normalize_schedule: (Hash[String, untyped] schedule, start_date: Date, prompt_text: String, schedule_key: String, catalog: Array[CoachZed::Catalog::Entry], generation_days: Integer) -> Hash[String, untyped]
   def write_schedule: (Hash[String, untyped] schedule, String schedule_key) -> Pathname
-  def write_feeds: (Hash[String, untyped] schedule, start_date: Date, schedule_key: String, existing_feed: CoachZed::FeedReader?) -> Hash[Symbol, Pathname]
+  def write_feeds: (Hash[String, untyped] schedule, start_date: Date, existing_feed: CoachZed::FeedReader?) -> Hash[Symbol, Pathname]
   def schedule_filename: (String schedule_key) -> String
-  def feed_basename: (String schedule_key) -> String
+  def feed_basename: -> String
 
   module Catalog
     class Entry

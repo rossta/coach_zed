@@ -134,7 +134,7 @@ class CoachZed
     schedule = normalize_schedule(schedule, start_date:, prompt_text:, schedule_key:, catalog:, generation_days:)
 
     schedule_path = write_schedule(schedule, schedule_key)
-    feed_paths = write_feeds(schedule, start_date:, schedule_key:, existing_feed:)
+    feed_paths = write_feeds(schedule, start_date:, existing_feed:)
 
     Result.new(
       schedule_path: schedule_path,
@@ -271,9 +271,9 @@ class CoachZed
     path
   end
 
-  def write_feeds(schedule, start_date:, schedule_key:, existing_feed:)
+  def write_feeds(schedule, start_date:, existing_feed:)
     feed_output_dir.mkpath
-    base_path = feed_output_dir.join(feed_basename(schedule_key))
+    base_path = feed_output_dir.join(feed_basename)
     feed = FeedWriter.new(
       schedule:,
       start_date:,
@@ -290,7 +290,7 @@ class CoachZed
     "schedule-#{schedule_key}.json"
   end
 
-  def feed_basename(schedule_key)
-    feed_output_basename || "schedule-#{schedule_key}"
+  def feed_basename
+    feed_output_basename || "schedule"
   end
 end

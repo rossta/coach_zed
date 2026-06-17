@@ -133,6 +133,31 @@ RSpec.describe CoachZed do
     expect(File.read(result.ics_path)).to include("SUMMARY:Rest")
   end
 
+  it "defaults feed basenames to schedule when unset" do
+    client = openai_client_with(
+      "choices" => [
+        {
+          "message" => {
+            "content" => schedule_response
+          }
+        }
+      ]
+    ).first
+    coach = described_class.new(
+      workout_catalog_dir: catalog_dir,
+      client: client,
+      output_dir: File.join(@tmpdir, "results")
+    )
+
+    result = coach.generate_schedule(
+      consultation_prompt: consultation_prompt,
+      start_date: start_date
+    )
+
+    expect(result.ics_path.basename.to_s).to eq("schedule.ics")
+    expect(result.webcal_path.basename.to_s).to eq("schedule.webcal")
+  end
+
   it "accepts a consultation prompt file path and overwrites existing feeds" do
     prompt_path = File.join(@tmpdir, "consultation.txt")
     File.write(prompt_path, consultation_prompt)
