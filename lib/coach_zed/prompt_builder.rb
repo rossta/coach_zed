@@ -26,6 +26,8 @@ class CoachZed
 
         Rules:
         - Produce exactly #{generation_days} entries for the requested time period.
+        - Set `program_length_days` to exactly #{generation_days}.
+        - Keep `program_length_days` equal to the number of entries in `days`.
         - Include rest days when appropriate.
         - Use only workouts that exist in the catalog.
         - Match the athlete's goals and the requested time period.
