@@ -112,12 +112,13 @@ class CoachZed
     @existing_feed_path = resolved_existing_feed_path && Pathname(resolved_existing_feed_path)
   end
 
-  def generate_schedule(start_date:, consultation_prompt: nil, consultation_prompt_path: nil)
+  def generate_schedule(start_date:, consultation_prompt: nil, consultation_prompt_path: nil, generation_mode: nil)
     prompt_text = resolve_prompt_text(consultation_prompt, consultation_prompt_path)
     catalog = Catalog::Loader.new(@workout_catalog_dir).load
-    existing_feed = load_existing_feed
-    start_date = generation_start_date(start_date, existing_feed:)
-    generation_days = existing_feed ? 7 : 28
+    generation_mode = normalize_generation_mode(generation_mode)
+    existing_feed = load_existing_feed if generation_mode != :refresh
+    start_date = generation_start_date(start_date, existing_feed:, generation_mode:)
+    generation_days = generation_days_for(start_date, generation_mode:, existing_feed:)
     existing_feed_context = existing_feed&.to_context(limit_days: 28)
     schedule_key = schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_feed_context)
     prompt = PromptBuilder.new(
@@ -190,11 +191,34 @@ class CoachZed
     FeedReader.load_existing(existing_feed_path)
   end
 
-  def generation_start_date(start_date, existing_feed:)
+  def normalize_generation_mode(value)
+    return nil if value.nil?
+
+    case value.to_sym
+    when :refresh, :append
+      value.to_sym
+    else
+      raise ArgumentError, "unsupported generation mode: #{value}"
+    end
+  end
+
+  def generation_start_date(start_date, existing_feed:, generation_mode:)
+    return normalize_date(start_date) if generation_mode == :refresh
+
     last_date = existing_feed&.last_date
     return normalize_date(start_date) if last_date.nil?
 
     last_date + 1
+  end
+
+  def generation_days_for(start_date, generation_mode:, existing_feed:)
+    return 7 if generation_mode == :append && existing_feed
+    return 28 if generation_mode == :append
+    return 7 if existing_feed
+    return 28 if generation_mode.nil?
+
+    upcoming_sunday = start_date + ((7 - start_date.wday) % 7)
+    (upcoming_sunday - start_date).to_i + 29
   end
 
   def schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_feed_context)

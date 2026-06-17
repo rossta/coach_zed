@@ -242,7 +242,8 @@ RSpec.describe CoachZed do
 
     result = coach.generate_schedule(
       consultation_prompt: consultation_prompt,
-      start_date: Date.new(2026, 6, 15)
+      start_date: Date.new(2026, 6, 15),
+      generation_mode: :append
     )
 
     schedule = JSON.parse(File.read(result.schedule_path))
@@ -252,6 +253,64 @@ RSpec.describe CoachZed do
     expect(File.read(result.ics_path)).to include("SUMMARY:Existing Workout")
     expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
     expect(File.read(result.ics_path)).to include("DTSTART;VALUE=DATE:20260622")
+  end
+
+  it "refreshes the current period on pushes and ignores an existing feed" do
+    existing_feed_path = File.join(@tmpdir, "feeds", "current.ics")
+    FileUtils.mkdir_p(File.dirname(existing_feed_path))
+    File.write(
+      existing_feed_path,
+      <<~ICAL
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:-//CoachZed//EN
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-CALNAME:Current Plan
+        X-WR-TIMEZONE:America/New_York
+        BEGIN:VEVENT
+        UID:existing-1@coach_zed
+        DTSTAMP:20260601T120000Z
+        DTSTART;VALUE=DATE:20260615
+        DTEND;VALUE=DATE:20260616
+        SUMMARY:Existing Workout
+        DESCRIPTION:Prior week.
+        END:VEVENT
+        END:VCALENDAR
+      ICAL
+    )
+
+    client, prompts = openai_client_with(
+      "choices" => [
+        {
+          "message" => {
+            "content" => schedule_response
+          }
+        }
+      ]
+    )
+    coach = described_class.new(
+      workout_catalog_dir: catalog_dir,
+      client: client,
+      output_dir: File.join(@tmpdir, "results"),
+      feed_output_basename: "current",
+      existing_feed_path: existing_feed_path
+    )
+
+    result = coach.generate_schedule(
+      consultation_prompt: consultation_prompt,
+      start_date: start_date,
+      generation_mode: :refresh
+    )
+
+    schedule = JSON.parse(File.read(result.schedule_path))
+
+    expect(prompts.first).to include("Produce exactly 35 entries")
+    expect(prompts.first).to include("Existing feed context (most recent weeks, if available):")
+    expect(prompts.first).to include("none")
+    expect(schedule["start_date"]).to eq("2026-06-15")
+    expect(File.read(result.ics_path)).not_to include("Existing Workout")
+    expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
   end
 
   it "validates prompt source arguments" do

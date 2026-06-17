@@ -65,7 +65,8 @@ class CoachZed
   def generate_schedule: (
     start_date: untyped,
     ?consultation_prompt: String?,
-    ?consultation_prompt_path: String?
+    ?consultation_prompt_path: String?,
+    ?generation_mode: Symbol?
   ) -> Result
 
   private
@@ -74,7 +75,9 @@ class CoachZed
   def resolve_prompt_text: (String? consultation_prompt, String? consultation_prompt_path) -> String
   def normalize_date: (untyped value) -> Date
   def load_existing_feed: -> CoachZed::FeedReader?
-  def generation_start_date: (untyped start_date, existing_feed: CoachZed::FeedReader?) -> Date
+  def normalize_generation_mode: (untyped value) -> Symbol?
+  def generation_start_date: (untyped start_date, existing_feed: CoachZed::FeedReader?, generation_mode: Symbol?) -> Date
+  def generation_days_for: (Date start_date, generation_mode: Symbol?, existing_feed: CoachZed::FeedReader?) -> Integer
   def schedule_key_for: (String prompt_text, Date start_date, Array[CoachZed::Catalog::Entry] catalog, Integer generation_days, String? existing_feed_context) -> String
   def catalog_digest: (Array[CoachZed::Catalog::Entry] catalog) -> String
   def normalize_schedule: (Hash[String, untyped] schedule, start_date: Date, prompt_text: String, schedule_key: String, catalog: Array[CoachZed::Catalog::Entry], generation_days: Integer) -> Hash[String, untyped]
