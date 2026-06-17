@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.1...v) (2026-06-17)
+
+### Bug Fixes
+
+* split refresh and append schedule modes ([51455f1](https://github.com/rossta/coach_zed/commit/51455f13171495365f92a748fa994d6540a77123))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.0...v) (2026-06-16)
 
 ### Bug Fixes
