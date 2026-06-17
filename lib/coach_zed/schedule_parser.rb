@@ -9,6 +9,7 @@ class CoachZed
     def self.parse(raw_schedule)
       json = extract_json(raw_schedule)
       schedule = JSON.parse(json)
+      normalize!(schedule)
       validate!(schedule)
       schedule
     rescue JSON::ParserError => e
@@ -21,6 +22,15 @@ class CoachZed
 
       fenced = text.match(/```(?:json)?\s*(.*?)\s*```/m)
       fenced ? fenced[1].to_s.strip : text
+    end
+
+    def self.normalize!(schedule)
+      return unless schedule.is_a?(Hash)
+
+      days = schedule["days"]
+      return unless days.is_a?(Array) && !days.empty?
+
+      schedule["program_length_days"] = days.length
     end
 
     def self.validate!(schedule)

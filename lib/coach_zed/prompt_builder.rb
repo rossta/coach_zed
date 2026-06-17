@@ -17,6 +17,7 @@ class CoachZed
     def build
       <<~PROMPT
         You are a training coach. Build a daily training schedule for the athlete using only the provided catalog.
+        CoachZed manages the scheduling contract, so follow the rules below without requiring the end user to restate them.
 
         Return strict JSON only. Do not wrap it in markdown fences or commentary.
         Every string value must be valid JSON text on a single line. Do not emit literal newlines, tabs, or other control characters inside string values.

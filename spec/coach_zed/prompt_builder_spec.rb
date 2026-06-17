@@ -39,6 +39,7 @@ RSpec.describe CoachZed::PromptBuilder do
     expect(prompt).to include("Start date: 2026-06-15")
     expect(prompt).to include("program_length_days")
     expect(prompt).to include("Produce exactly 28 entries")
+    expect(prompt).to include("CoachZed manages the scheduling contract")
     expect(prompt).to include("Set `program_length_days` to exactly 28")
     expect(prompt).to include("Existing feed context")
     expect(prompt).to include("Required JSON Schema")

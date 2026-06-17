@@ -44,4 +44,29 @@ RSpec.describe CoachZed::ScheduleParser do
     schedule = described_class.parse(payload)
     expect(schedule["days"].first["day_type"]).to eq("rest")
   end
+
+  it "normalizes program_length_days to match days" do
+    payload = {
+      "program_name" => "Mismatch Plan",
+      "program_length_days" => 99,
+      "days" => [
+        {
+          "day_number" => 1,
+          "day_type" => "rest",
+          "workout" => nil,
+          "notes" => "Rest."
+        },
+        {
+          "day_number" => 2,
+          "day_type" => "rest",
+          "workout" => nil,
+          "notes" => "Rest again."
+        }
+      ]
+    }.to_json
+
+    schedule = described_class.parse(payload)
+
+    expect(schedule["program_length_days"]).to eq(2)
+  end
 end

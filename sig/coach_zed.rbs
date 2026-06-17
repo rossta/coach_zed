@@ -240,6 +240,7 @@ class CoachZed
 
     def self.parse: (String) -> Hash[String, untyped]
     def self.extract_json: (String raw_schedule) -> String
+    def self.normalize!: (Hash[String, untyped] schedule) -> void
     def self.validate!: (Hash[String, untyped] schedule) -> void
     def self.validate_day!: (Hash[String, untyped] day, Integer expected_day_number) -> void
   end
