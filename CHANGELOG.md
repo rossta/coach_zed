@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.2...v) (2026-06-17)
+
+### Bug Fixes
+
+* reinforce schedule length in prompt ([4cee0a3](https://github.com/rossta/coach_zed/commit/4cee0a371ce0270a7da13d24a2a970ef5a243788))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.1...v) (2026-06-17)
 
 ### Bug Fixes
