@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.3...v) (2026-06-17)
+
+### Bug Fixes
+
+* internalize schedule validation contract ([cf2a5c3](https://github.com/rossta/coach_zed/commit/cf2a5c3566873b4d4d8fe47f3826eb5810af5781))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.2...v) (2026-06-17)
 
 ### Bug Fixes
