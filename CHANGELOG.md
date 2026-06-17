@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.4...v) (2026-06-17)
+
+### Bug Fixes
+
+* make feed basenames stable ([7ede924](https://github.com/rossta/coach_zed/commit/7ede9245e7d5796384067821993317556df4303c))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.3...v) (2026-06-17)
 
 ### Bug Fixes
