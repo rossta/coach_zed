@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.5.6...v) (2026-06-17)
+
+### Features
+
+* add workout precedence metadata ([aade5c6](https://github.com/rossta/coach_zed/commit/aade5c682a1d2c4529ed1bb99bf91c5c64e5167f))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.5...v) (2026-06-17)
 
 ### Bug Fixes
