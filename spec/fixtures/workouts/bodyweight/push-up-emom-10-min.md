@@ -2,6 +2,7 @@
 
 - Domain: `bodyweight`
 - Session Duration: `10 min`
+- Precedence: `complementary`
 - Frequency: `2-4x/week`
 - Format: `EMOM`
 - Equipment: `none`

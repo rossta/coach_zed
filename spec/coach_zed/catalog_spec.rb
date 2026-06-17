@@ -13,5 +13,6 @@ RSpec.describe CoachZed::Catalog::Loader do
     expect(entries.map(&:relative_path)).not_to include("INDEX.md")
     expect(entries.map(&:relative_path)).not_to include("TEMPLATE.md")
     expect(entries.find { |entry| entry.title == "The Stack: Foundation" }.program).to eq("18 sessions total, ~6 weeks")
+    expect(entries.find { |entry| entry.title == "The Stack: Foundation" }.precedence).to eq("complementary")
   end
 end

@@ -92,14 +92,15 @@ class CoachZed
 
   module Catalog
     class Entry
-      attr_reader path: Pathname
-      attr_reader relative_path: String
-      attr_reader title: String
-      attr_reader domain: String?
-      attr_reader session_duration: String?
-      attr_reader frequency: String?
-      attr_reader program: String?
-      attr_reader format: String?
+    attr_reader path: Pathname
+    attr_reader relative_path: String
+    attr_reader title: String
+    attr_reader domain: String?
+    attr_reader session_duration: String?
+    attr_reader precedence: String?
+    attr_reader frequency: String?
+    attr_reader program: String?
+    attr_reader format: String?
       attr_reader equipment: String?
       attr_reader summary: String
       attr_reader work_items: Array[String]
@@ -108,13 +109,14 @@ class CoachZed
 
       def initialize: (
         path: Pathname,
-        relative_path: String,
-        title: String,
-        ?domain: String?,
-        ?session_duration: String?,
-        ?frequency: String?,
-        ?program: String?,
-        ?format: String?,
+      relative_path: String,
+      title: String,
+      ?domain: String?,
+      ?session_duration: String?,
+      ?precedence: String?,
+      ?frequency: String?,
+      ?program: String?,
+      ?format: String?,
         ?equipment: String?,
         summary: String,
         work_items: Array[String],

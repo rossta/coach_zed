@@ -29,6 +29,12 @@ class CoachZed
         - Produce exactly #{generation_days} entries for the requested time period.
         - Set `program_length_days` to exactly #{generation_days}.
         - Keep `program_length_days` equal to the number of entries in `days`.
+        - Treat catalog entries marked `primary` as the main training sessions.
+        - Aim for 5-6 primary workouts per 7-day week.
+        - Use at most one primary workout per day.
+        - A primary day may include one complementary workout.
+        - On non-primary days, pair complementary workouts with other complementary work only.
+        - Keep rest days to 1 or fewer per 7-day week.
         - Include rest days when appropriate.
         - Use only workouts that exist in the catalog.
         - Match the athlete's goals and the requested time period.

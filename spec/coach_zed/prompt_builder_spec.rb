@@ -11,6 +11,7 @@ RSpec.describe CoachZed::PromptBuilder do
         title: "Push Up EMOM 10 Min",
         domain: "bodyweight",
         session_duration: "10 min",
+        precedence: "complementary",
         frequency: "2-4x/week",
         program: nil,
         format: "EMOM",
@@ -43,5 +44,7 @@ RSpec.describe CoachZed::PromptBuilder do
     expect(prompt).to include("Set `program_length_days` to exactly 28")
     expect(prompt).to include("Existing feed context")
     expect(prompt).to include("Required JSON Schema")
+    expect(prompt).to include("Treat catalog entries marked `primary` as the main training sessions")
+    expect(prompt).to include("Aim for 5-6 primary workouts per 7-day week")
   end
 end

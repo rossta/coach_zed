@@ -6,7 +6,7 @@ require "pathname"
 class CoachZed
   module Catalog
     class Entry
-      attr_reader :path, :relative_path, :title, :domain, :session_duration, :frequency, :program, :format, :equipment, :summary, :work_items, :notes, :source_urls
+      attr_reader :path, :relative_path, :title, :domain, :session_duration, :precedence, :frequency, :program, :format, :equipment, :summary, :work_items, :notes, :source_urls
 
       def initialize(
         path:,
@@ -18,6 +18,7 @@ class CoachZed
         source_urls:,
         domain: nil,
         session_duration: nil,
+        precedence: nil,
         frequency: nil,
         program: nil,
         format: nil,
@@ -28,6 +29,7 @@ class CoachZed
         @title = title
         @domain = domain
         @session_duration = session_duration
+        @precedence = precedence
         @frequency = frequency
         @program = program
         @format = format
@@ -44,6 +46,7 @@ class CoachZed
           title,
           domain,
           session_duration,
+          precedence,
           frequency,
           program,
           format,
@@ -62,6 +65,7 @@ class CoachZed
           "title" => title,
           "domain" => domain,
           "session_duration" => session_duration,
+          "precedence" => precedence,
           "frequency" => frequency,
           "program" => program,
           "format" => format,
@@ -131,6 +135,7 @@ class CoachZed
           title: title,
           domain: metadata["domain"],
           session_duration: metadata["session_duration"],
+          precedence: metadata["precedence"],
           frequency: metadata["frequency"],
           program: metadata["program"],
           format: metadata["format"],

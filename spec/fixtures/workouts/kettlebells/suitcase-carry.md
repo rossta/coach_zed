@@ -2,6 +2,7 @@
 
 - Domain: `kettlebells`
 - Session Duration: `~20-25 min`
+- Precedence: `complementary`
 - Frequency: `2-3x/week`
 - Format: `carry`
 - Equipment: `single kettlebell`

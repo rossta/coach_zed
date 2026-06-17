@@ -2,6 +2,7 @@
 
 - Domain: `swing-speed`
 - Session Duration: `~25 min`
+- Precedence: `complementary`
 - Program: `18 sessions total, ~6 weeks`
 - Format: `program`
 
