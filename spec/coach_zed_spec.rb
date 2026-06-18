@@ -124,12 +124,14 @@ RSpec.describe CoachZed do
     expect(prompts.first).to include("Push Up EMOM 10 Min")
     expect(schedule["start_date"]).to eq("2026-06-15")
     expect(schedule["days"].length).to eq(3)
+    expect(schedule["days"].first["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
     expect(File).to exist(result.ics_path)
     expect(File).to exist(result.webcal_path)
     expect(result.ics_path.basename.to_s).to eq("current.ics")
     expect(result.webcal_path.basename.to_s).to eq("current.webcal")
     expect(File.read(result.ics_path)).to include("BEGIN:VCALENDAR")
     expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
+    expect(File.read(result.ics_path)).to include("Progressive push-up EMOM built around a sustainable rep target")
     expect(File.read(result.ics_path)).to include("SUMMARY:Rest")
   end
 
@@ -301,8 +303,10 @@ RSpec.describe CoachZed do
 
     expect(schedule["start_date"]).to eq("2026-06-22")
     expect(schedule["program_length_days"]).to eq(7)
+    expect(schedule["days"].first["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
     expect(File.read(result.ics_path)).to include("SUMMARY:Existing Workout")
     expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
+    expect(File.read(result.ics_path)).to include("Progressive push-up EMOM built around a sustainable rep target")
     expect(File.read(result.ics_path)).to include("DTSTART;VALUE=DATE:20260622")
   end
 
@@ -360,6 +364,7 @@ RSpec.describe CoachZed do
     expect(prompts.first).to include("Existing feed context (most recent weeks, if available):")
     expect(prompts.first).to include("none")
     expect(schedule["start_date"]).to eq("2026-06-15")
+    expect(schedule["days"].first["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
     expect(File.read(result.ics_path)).not_to include("Existing Workout")
     expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
   end

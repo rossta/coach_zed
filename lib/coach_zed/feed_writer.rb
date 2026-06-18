@@ -84,9 +84,8 @@ class CoachZed
       pieces << day["notes"].to_s if day["notes"] && !day["notes"].to_s.empty?
       if day["day_type"] == "workout"
         workout = day.fetch("workout")
-        pieces << "Catalog path: #{workout.fetch("catalog_path")}"
-        pieces << "Domain: #{workout.fetch("domain")}"
-        pieces << "Session duration: #{workout.fetch("session_duration")}"
+        catalog_text = workout["catalog_text"].to_s
+        pieces << catalog_text unless catalog_text.empty?
       end
       pieces.join("\n")
     end

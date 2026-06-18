@@ -242,11 +242,13 @@ class CoachZed
   end
 
   def normalize_schedule(schedule, start_date:, prompt_text:, schedule_key:, catalog:, generation_days:)
+    catalog_texts = catalog.to_h { |entry| [entry.relative_path, entry.path.read] }
     days = schedule.fetch("days")
     normalized_days = days.each_with_index.map do |day, index|
       day_number = day.fetch("day_number", index + 1).to_i
       date = start_date + (day_number - 1)
       workout = day["workout"]
+      workout = workout&.merge("catalog_text" => catalog_texts.fetch(workout["catalog_path"], ""))
       {
         "day_number" => day_number,
         "date" => date.iso8601,

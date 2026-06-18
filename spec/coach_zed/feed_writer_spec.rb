@@ -15,7 +15,17 @@ RSpec.describe CoachZed::FeedWriter do
             "title" => "Push Up EMOM 10 Min",
             "catalog_path" => "bodyweight/push-up-emom-10-min.md",
             "domain" => "bodyweight",
-            "session_duration" => "10 min"
+            "session_duration" => "10 min",
+            "catalog_text" => <<~TEXT
+              # Push Up EMOM 10 Min
+
+              - Domain: `bodyweight`
+              - Session Duration: `10 min`
+
+              ## Summary
+
+              Progressive push-up EMOM built around a sustainable rep target that you can repeat every minute for 10 minutes.
+            TEXT
           },
           "notes" => "Build consistency."
         },
@@ -38,7 +48,8 @@ RSpec.describe CoachZed::FeedWriter do
     expect(feed).to include("SUMMARY:Rest")
     expect(feed).to include("DTSTART;VALUE=DATE:20260615")
     expect(feed).to include("DTSTART;VALUE=DATE:20260616")
-    expect(feed).to include("Catalog path: bodyweight/push-up-emom-10-min.md")
+    expect(feed).to include("Progressive push-up EMOM built around a sustainable rep target")
+    expect(feed).not_to include("Catalog path:")
   end
 
   it "appends new events to an existing feed without rewriting old content" do
