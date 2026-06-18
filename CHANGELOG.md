@@ -1,3 +1,8 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.6.0...v) (2026-06-18)
+
+### Features
+
+* persist catalog text in schedule json ([67d5949](https://github.com/rossta/coach_zed/commit/67d5949925e3ea0ad6de4042780228eb385e9ab6))
 ## [](https://github.com/rossta/coach_zed/compare/v0.5.6...v) (2026-06-17)
 
 ### Features
