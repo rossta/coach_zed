@@ -10,6 +10,7 @@ RSpec.describe CoachZed::FeedWriter do
       "days" => [
         {
           "day_number" => 1,
+          "date" => "2026-06-15",
           "day_type" => "workout",
           "workout" => {
             "title" => "Push Up EMOM 10 Min",
@@ -31,6 +32,7 @@ RSpec.describe CoachZed::FeedWriter do
         },
         {
           "day_number" => 2,
+          "date" => "2026-06-16",
           "day_type" => "rest",
           "workout" => nil,
           "notes" => "Recovery."
@@ -40,7 +42,7 @@ RSpec.describe CoachZed::FeedWriter do
   end
 
   it "renders a calendar feed with daily events" do
-    feed = described_class.new(schedule:, start_date: Date.new(2026, 6, 15)).build
+    feed = described_class.new(schedule:).build
 
     expect(feed).to include("BEGIN:VCALENDAR")
     expect(feed).to include("X-WR-CALNAME:Test Plan")
@@ -52,95 +54,17 @@ RSpec.describe CoachZed::FeedWriter do
     expect(feed).not_to include("Catalog path:")
   end
 
-  it "appends new events to an existing feed without rewriting old content" do
-    existing_feed = <<~ICAL
-      BEGIN:VCALENDAR
-      VERSION:2.0
-      PRODID:-//CoachZed//EN
-      CALSCALE:GREGORIAN
-      METHOD:PUBLISH
-      X-WR-CALNAME:Test Plan
-      X-WR-TIMEZONE:America/New_York
-      BEGIN:VEVENT
-      UID:existing-1@coach_zed
-      DTSTAMP:20260601T120000Z
-      DTSTART;VALUE=DATE:20260615
-      DTEND;VALUE=DATE:20260616
-      SUMMARY:Existing Workout
-      DESCRIPTION:Prior week.
-      END:VEVENT
-      END:VCALENDAR
-    ICAL
+  it "uses stable date-based identifiers" do
+    feed = described_class.new(schedule:).build
 
-    feed = described_class.new(
-      schedule:,
-      start_date: Date.new(2026, 6, 22),
-      existing_feed_content: existing_feed
-    ).build
-
-    expect(feed).to include("SUMMARY:Existing Workout")
+    expect(feed).to include("UID:20260615@coach_zed")
+    expect(feed).to include("UID:20260616@coach_zed")
     expect(feed).to include("SUMMARY:Push Up EMOM 10 Min")
-    expect(feed.scan("BEGIN:VEVENT").length).to eq(3)
-  end
-
-  it "replaces overlapping existing events when appending" do
-    existing_feed = <<~ICAL
-      BEGIN:VCALENDAR
-      VERSION:2.0
-      PRODID:-//CoachZed//EN
-      CALSCALE:GREGORIAN
-      METHOD:PUBLISH
-      X-WR-CALNAME:Test Plan
-      X-WR-TIMEZONE:America/New_York
-      BEGIN:VEVENT
-      UID:existing-1@coach_zed
-      DTSTAMP:20260601T120000Z
-      DTSTART;VALUE=DATE:20260621
-      DTEND;VALUE=DATE:20260622
-      SUMMARY:Existing Workout
-      DESCRIPTION:Prior week.
-      END:VEVENT
-      BEGIN:VEVENT
-      UID:existing-2@coach_zed
-      DTSTAMP:20260601T120000Z
-      DTSTART;VALUE=DATE:20260622
-      DTEND;VALUE=DATE:20260623
-      SUMMARY:Overlapping Workout
-      DESCRIPTION:Should be replaced.
-      END:VEVENT
-      BEGIN:VEVENT
-      UID:existing-3@coach_zed
-      DTSTAMP:20260601T120000Z
-      DTSTART;VALUE=DATE:20260623
-      DTEND;VALUE=DATE:20260624
-      SUMMARY:Another Overlap
-      DESCRIPTION:Should also be replaced.
-      END:VEVENT
-      END:VCALENDAR
-    ICAL
-
-    feed = described_class.new(
-      schedule:,
-      start_date: Date.new(2026, 6, 22),
-      existing_feed_content: existing_feed
-    ).build
-
-    expect(feed).to include("SUMMARY:Existing Workout")
-    expect(feed).to include("SUMMARY:Push Up EMOM 10 Min")
-    expect(feed).not_to include("SUMMARY:Overlapping Workout")
-    expect(feed).not_to include("SUMMARY:Another Overlap")
-    expect(feed.scan("BEGIN:VEVENT").length).to eq(3)
-    expect(feed.scan("DTSTART;VALUE=DATE:20260621").length).to eq(1)
-    expect(feed.scan("DTSTART;VALUE=DATE:20260622").length).to eq(1)
-    expect(feed.scan("DTSTART;VALUE=DATE:20260623").length).to eq(1)
+    expect(feed.scan("BEGIN:VEVENT").length).to eq(2)
   end
 
   it "uses a configured calendar title when provided" do
-    feed = described_class.new(
-      schedule:,
-      start_date: Date.new(2026, 6, 15),
-      calendar_name: "Morning Training"
-    ).build
+    feed = described_class.new(schedule:, calendar_name: "Morning Training").build
 
     expect(feed).to include("X-WR-CALNAME:Morning Training")
   end

@@ -4,6 +4,7 @@ require "date"
 require "digest"
 require "json"
 require "pathname"
+require "time"
 require "yaml"
 
 require_relative "coach_zed/version"
@@ -19,7 +20,7 @@ class CoachZed
   Result = Data.define(:schedule_path, :ics_path, :webcal_path, :schedule)
 
   class Config
-    attr_accessor :workout_catalog_dir, :model, :output_dir, :feed_output_basename, :feed_title, :existing_feed_path
+    attr_accessor :workout_catalog_dir, :model, :output_dir, :feed_output_basename, :feed_title, :existing_feed_path, :existing_schedule_path, :merge_policy
 
     def initialize(
       workout_catalog_dir: nil,
@@ -27,7 +28,9 @@ class CoachZed
       output_dir: nil,
       feed_output_basename: nil,
       feed_title: nil,
-      existing_feed_path: nil
+      existing_feed_path: nil,
+      existing_schedule_path: nil,
+      merge_policy: nil
     )
       @workout_catalog_dir = workout_catalog_dir
       @model = model
@@ -35,6 +38,8 @@ class CoachZed
       @feed_output_basename = feed_output_basename
       @feed_title = feed_title
       @existing_feed_path = existing_feed_path
+      @existing_schedule_path = existing_schedule_path
+      @merge_policy = merge_policy
     end
 
     def apply(hash)
@@ -100,7 +105,9 @@ class CoachZed
     output_dir: nil,
     feed_output_basename: nil,
     feed_title: nil,
-    existing_feed_path: nil
+    existing_feed_path: nil,
+    existing_schedule_path: nil,
+    merge_policy: nil
   )
     config = self.class.config
 
@@ -114,31 +121,43 @@ class CoachZed
     @feed_title = feed_title.nil? ? config.feed_title : feed_title
     resolved_existing_feed_path = existing_feed_path.nil? ? config.existing_feed_path : existing_feed_path
     @existing_feed_path = resolved_existing_feed_path && Pathname(resolved_existing_feed_path)
+    resolved_existing_schedule_path = existing_schedule_path.nil? ? config.existing_schedule_path : existing_schedule_path
+    resolved_existing_schedule_path =
+      if resolved_existing_schedule_path.nil? && @existing_feed_path
+        Pathname(@existing_feed_path.to_s.sub(/\.ics\z/, ".json"))
+      else
+        resolved_existing_schedule_path
+      end
+    @existing_schedule_path = resolved_existing_schedule_path && Pathname(resolved_existing_schedule_path)
+    @merge_policy = merge_policy.nil? ? config.merge_policy : merge_policy
   end
 
-  def generate_schedule(start_date:, consultation_prompt: nil, consultation_prompt_path: nil, generation_mode: nil)
+  def generate_schedule(start_date:, consultation_prompt: nil, consultation_prompt_path: nil, generation_mode: nil, merge_policy: nil)
     prompt_text = resolve_prompt_text(consultation_prompt, consultation_prompt_path)
     catalog = Catalog::Loader.new(@workout_catalog_dir).load
     generation_mode = normalize_generation_mode(generation_mode)
-    existing_feed = load_existing_feed if generation_mode != :refresh
-    start_date = generation_start_date(start_date, existing_feed:, generation_mode:)
-    generation_days = generation_days_for(start_date, generation_mode:, existing_feed:)
-    existing_feed_context = existing_feed&.to_context(limit_days: 28)
-    schedule_key = schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_feed_context)
+    merge_policy = normalize_merge_policy(merge_policy || @merge_policy || generation_mode)
+    existing_schedule = load_existing_schedule if merge_policy == :append
+    existing_feed = load_existing_feed if existing_schedule.nil? && generation_mode != :refresh
+    start_date = generation_start_date(start_date, existing_schedule:, generation_mode:, merge_policy:)
+    generation_days = generation_days_for(start_date, generation_mode:, existing_schedule:, merge_policy:)
+    existing_context = existing_schedule ? schedule_context(existing_schedule, limit_days: 28) : existing_feed&.to_context(limit_days: 28)
+    schedule_key = schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_context, merge_policy)
     prompt = PromptBuilder.new(
       consultation_prompt: prompt_text,
       catalog: catalog,
       start_date: start_date,
       schedule_key: schedule_key,
       generation_days: generation_days,
-      existing_feed_context: existing_feed_context
+      existing_feed_context: existing_context
     ).build
     raw_schedule = @ai_client.generate(prompt:)
     schedule = ScheduleParser.parse(raw_schedule)
-    schedule = normalize_schedule(schedule, start_date:, prompt_text:, schedule_key:, catalog:, generation_days:)
+    schedule = normalize_schedule(schedule, start_date:, prompt_text:, schedule_key:, catalog:, generation_days:, merge_policy:)
+    schedule = merge_schedule(existing_schedule, schedule, merge_policy)
 
     schedule_path = write_schedule(schedule, schedule_key)
-    feed_paths = write_feeds(schedule, start_date:, existing_feed:)
+    feed_paths = write_feeds(schedule)
 
     Result.new(
       schedule_path: schedule_path,
@@ -150,7 +169,7 @@ class CoachZed
 
   private
 
-  attr_reader :workout_catalog_dir, :ai_client, :output_dir, :schedule_output_dir, :feed_output_dir, :feed_output_basename, :feed_title, :existing_feed_path
+  attr_reader :workout_catalog_dir, :ai_client, :output_dir, :schedule_output_dir, :feed_output_dir, :feed_output_basename, :feed_title, :existing_feed_path, :existing_schedule_path, :merge_policy
 
   def wrap_client(client, model:)
     return client if client.is_a?(Clients::RubyOpenAI)
@@ -195,6 +214,15 @@ class CoachZed
     FeedReader.load_existing(existing_feed_path)
   end
 
+  def load_existing_schedule
+    return nil if existing_schedule_path.nil?
+    return nil unless existing_schedule_path.exist?
+
+    schedule = JSON.parse(existing_schedule_path.read)
+    ScheduleParser.validate!(schedule)
+    schedule
+  end
+
   def normalize_generation_mode(value)
     return nil if value.nil?
 
@@ -206,33 +234,48 @@ class CoachZed
     end
   end
 
-  def generation_start_date(start_date, existing_feed:, generation_mode:)
-    return normalize_date(start_date) if generation_mode == :refresh
+  def normalize_merge_policy(value)
+    return :replace if value.nil?
 
-    last_date = existing_feed&.last_date
-    return normalize_date(start_date) if last_date.nil?
-
-    last_date + 1
+    case value.to_sym
+    when :replace, :append
+      value.to_sym
+    else
+      raise ArgumentError, "unsupported merge policy: #{value}"
+    end
   end
 
-  def generation_days_for(start_date, generation_mode:, existing_feed:)
-    return 7 if generation_mode == :append && existing_feed
-    return 28 if generation_mode == :append
-    return 7 if existing_feed
+  def generation_start_date(start_date, existing_schedule:, generation_mode:, merge_policy:)
+    return normalize_date(start_date) if generation_mode == :refresh
+
+    if merge_policy == :append
+      last_date = existing_schedule&.fetch("days")&.map { |day| Date.parse(day.fetch("date")) }&.max
+      return normalize_date(start_date) if last_date.nil?
+
+      last_date + 1
+    else
+      normalize_date(start_date)
+    end
+  end
+
+  def generation_days_for(start_date, generation_mode:, existing_schedule:, merge_policy:)
+    return 7 if merge_policy == :append && existing_schedule
+    return 28 if merge_policy == :append
     return 28 if generation_mode.nil?
 
     upcoming_sunday = start_date + ((7 - start_date.wday) % 7)
     (upcoming_sunday - start_date).to_i + 29
   end
 
-  def schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_feed_context)
+  def schedule_key_for(prompt_text, start_date, catalog, generation_days, existing_context, merge_policy)
     Digest::SHA256.hexdigest(
       [
         prompt_text.strip,
         start_date.iso8601,
         generation_days,
         catalog_digest(catalog),
-        existing_feed_context.to_s
+        merge_policy.to_s,
+        existing_context.to_s
       ].join("\n")
     )[0...12] || ""
   end
@@ -241,7 +284,7 @@ class CoachZed
     Digest::SHA256.hexdigest(catalog.map(&:fingerprint).join("\n"))
   end
 
-  def normalize_schedule(schedule, start_date:, prompt_text:, schedule_key:, catalog:, generation_days:)
+  def normalize_schedule(schedule, start_date:, prompt_text:, schedule_key:, catalog:, generation_days:, merge_policy:)
     catalog_texts = catalog.to_h { |entry| [entry.relative_path, entry.path.read] }
     days = schedule.fetch("days")
     normalized_days = days.each_with_index.map do |day, index|
@@ -266,7 +309,28 @@ class CoachZed
       "catalog_directory" => workout_catalog_dir.to_s,
       "catalog_count" => catalog.count,
       "program_length_days" => schedule.fetch("program_length_days", generation_days).to_i,
+      "merge_policy" => merge_policy.to_s,
+      "generated_at" => Time.now.utc.iso8601,
       "days" => normalized_days
+    )
+  end
+
+  def merge_schedule(existing_schedule, schedule, merge_policy)
+    return schedule if merge_policy == :replace || existing_schedule.nil?
+
+    existing_by_date = existing_schedule.fetch("days").to_h { |day| [day.fetch("date"), day] }
+    merged_by_date = existing_by_date.merge(schedule.fetch("days").to_h { |day| [day.fetch("date"), day] })
+
+    merged_days = merged_by_date.values.sort_by { |day| Date.parse(day.fetch("date")) }
+    merged_days = merged_days.each_with_index.map do |day, index|
+      day.merge("day_number" => index + 1)
+    end
+
+    schedule.merge(
+      "merged_from_schedule_id" => existing_schedule["schedule_id"],
+      "start_date" => merged_days.first&.fetch("date"),
+      "program_length_days" => merged_days.length,
+      "days" => merged_days
     )
   end
 
@@ -277,13 +341,11 @@ class CoachZed
     path
   end
 
-  def write_feeds(schedule, start_date:, existing_feed:)
+  def write_feeds(schedule)
     feed_output_dir.mkpath
     base_path = feed_output_dir.join(feed_basename)
     feed = FeedWriter.new(
       schedule:,
-      start_date:,
-      existing_feed_content: existing_feed&.feed_content,
       calendar_name: feed_title
     ).build
     ics_path = base_path.sub_ext(".ics")
@@ -299,5 +361,17 @@ class CoachZed
 
   def feed_basename
     feed_output_basename || "schedule"
+  end
+
+  def schedule_context(schedule, limit_days: 28)
+    days = schedule.fetch("days")
+    recent_days = days.last(limit_days)
+
+    recent_days.map do |day|
+      pieces = [day.fetch("date")]
+      pieces << ((day["day_type"] == "workout") ? day.fetch("workout").fetch("title") : "Rest")
+      pieces << day["notes"] if day["notes"] && !day["notes"].to_s.empty?
+      pieces.join(" | ")
+    end.join("\n")
   end
 end

@@ -86,6 +86,16 @@ RSpec.describe CoachZed do
     end
   end
 
+  def schedule_fixture(payload, start_date:, schedule_id: "existing-schedule")
+    schedule = JSON.parse(payload)
+    schedule["schedule_id"] = schedule_id
+    schedule["start_date"] = start_date.iso8601
+    schedule["days"].each_with_index do |day, index|
+      day["date"] = (start_date + index).iso8601
+    end
+    schedule
+  end
+
   def openai_client_with(response)
     prompts = []
     client = OpenAI::Client.new(access_token: "test-token")
@@ -123,6 +133,7 @@ RSpec.describe CoachZed do
     expect(prompts.first).to include(consultation_prompt)
     expect(prompts.first).to include("Push Up EMOM 10 Min")
     expect(schedule["start_date"]).to eq("2026-06-15")
+    expect(schedule["merge_policy"]).to eq("replace")
     expect(schedule["days"].length).to eq(3)
     expect(schedule["days"].first["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
     expect(File).to exist(result.ics_path)
@@ -243,37 +254,12 @@ RSpec.describe CoachZed do
     expect(JSON.parse(File.read(second_result.schedule_path))["days"][0]["notes"]).to eq("Updated plan.")
   end
 
-  it "appends to an existing feed and starts after the current end date" do
-    existing_feed_path = File.join(@tmpdir, "feeds", "current.ics")
-    FileUtils.mkdir_p(File.dirname(existing_feed_path))
+  it "appends to an existing schedule json and renders a merged feed" do
+    existing_schedule_path = File.join(@tmpdir, "schedules", "current.json")
+    FileUtils.mkdir_p(File.dirname(existing_schedule_path))
     File.write(
-      existing_feed_path,
-      <<~ICAL
-        BEGIN:VCALENDAR
-        VERSION:2.0
-        PRODID:-//CoachZed//EN
-        CALSCALE:GREGORIAN
-        METHOD:PUBLISH
-        X-WR-CALNAME:Current Plan
-        X-WR-TIMEZONE:America/New_York
-        BEGIN:VEVENT
-        UID:existing-1@coach_zed
-        DTSTAMP:20260601T120000Z
-        DTSTART;VALUE=DATE:20260615
-        DTEND;VALUE=DATE:20260616
-        SUMMARY:Existing Workout
-        DESCRIPTION:Prior week.
-        END:VEVENT
-        BEGIN:VEVENT
-        UID:existing-2@coach_zed
-        DTSTAMP:20260601T120000Z
-        DTSTART;VALUE=DATE:20260621
-        DTEND;VALUE=DATE:20260622
-        SUMMARY:Existing Rest
-        DESCRIPTION:Prior week.
-        END:VEVENT
-        END:VCALENDAR
-      ICAL
+      existing_schedule_path,
+      JSON.pretty_generate(schedule_fixture(weekly_schedule_response, start_date: Date.new(2026, 6, 15), schedule_id: "existing-week")) + "\n"
     )
 
     client = openai_client_with(
@@ -290,49 +276,37 @@ RSpec.describe CoachZed do
       client: client,
       output_dir: File.join(@tmpdir, "results"),
       feed_output_basename: "current",
-      existing_feed_path: existing_feed_path
+      existing_schedule_path: existing_schedule_path
     )
 
     result = coach.generate_schedule(
       consultation_prompt: consultation_prompt,
       start_date: Date.new(2026, 6, 15),
-      generation_mode: :append
+      generation_mode: :append,
+      merge_policy: :append
     )
 
     schedule = JSON.parse(File.read(result.schedule_path))
 
-    expect(schedule["start_date"]).to eq("2026-06-22")
-    expect(schedule["program_length_days"]).to eq(7)
-    expect(schedule["days"].first["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
-    expect(File.read(result.ics_path)).to include("SUMMARY:Existing Workout")
+    expect(schedule["merge_policy"]).to eq("append")
+    expect(schedule["merged_from_schedule_id"]).to eq("existing-week")
+    expect(schedule["start_date"]).to eq("2026-06-15")
+    expect(schedule["program_length_days"]).to eq(14)
+    expect(schedule["days"].first["date"]).to eq("2026-06-15")
+    expect(schedule["days"][7]["date"]).to eq("2026-06-22")
+    expect(schedule["days"][7]["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
     expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
     expect(File.read(result.ics_path)).to include("Progressive push-up EMOM built around a sustainable rep target")
-    expect(File.read(result.ics_path)).to include("DTSTART;VALUE=DATE:20260622")
+    expect(File.read(result.ics_path)).to include("DTSTART;VALUE=DATE:20260615")
+    expect(File.read(result.ics_path)).to include("DTSTART;VALUE=DATE:20260628")
   end
 
-  it "refreshes the current period on pushes and ignores an existing feed" do
-    existing_feed_path = File.join(@tmpdir, "feeds", "current.ics")
-    FileUtils.mkdir_p(File.dirname(existing_feed_path))
+  it "replaces the current period on pushes and ignores an existing schedule json" do
+    existing_schedule_path = File.join(@tmpdir, "schedules", "current.json")
+    FileUtils.mkdir_p(File.dirname(existing_schedule_path))
     File.write(
-      existing_feed_path,
-      <<~ICAL
-        BEGIN:VCALENDAR
-        VERSION:2.0
-        PRODID:-//CoachZed//EN
-        CALSCALE:GREGORIAN
-        METHOD:PUBLISH
-        X-WR-CALNAME:Current Plan
-        X-WR-TIMEZONE:America/New_York
-        BEGIN:VEVENT
-        UID:existing-1@coach_zed
-        DTSTAMP:20260601T120000Z
-        DTSTART;VALUE=DATE:20260615
-        DTEND;VALUE=DATE:20260616
-        SUMMARY:Existing Workout
-        DESCRIPTION:Prior week.
-        END:VEVENT
-        END:VCALENDAR
-      ICAL
+      existing_schedule_path,
+      JSON.pretty_generate(schedule_fixture(weekly_schedule_response, start_date: Date.new(2026, 5, 18), schedule_id: "existing-week")) + "\n"
     )
 
     client, prompts = openai_client_with(
@@ -349,13 +323,14 @@ RSpec.describe CoachZed do
       client: client,
       output_dir: File.join(@tmpdir, "results"),
       feed_output_basename: "current",
-      existing_feed_path: existing_feed_path
+      existing_schedule_path: existing_schedule_path
     )
 
     result = coach.generate_schedule(
       consultation_prompt: consultation_prompt,
       start_date: start_date,
-      generation_mode: :refresh
+      generation_mode: :refresh,
+      merge_policy: :replace
     )
 
     schedule = JSON.parse(File.read(result.schedule_path))
@@ -364,8 +339,8 @@ RSpec.describe CoachZed do
     expect(prompts.first).to include("Existing feed context (most recent weeks, if available):")
     expect(prompts.first).to include("none")
     expect(schedule["start_date"]).to eq("2026-06-15")
+    expect(schedule["merge_policy"]).to eq("replace")
     expect(schedule["days"].first["workout"]["catalog_text"]).to include("# Push Up EMOM 10 Min")
-    expect(File.read(result.ics_path)).not_to include("Existing Workout")
     expect(File.read(result.ics_path)).to include("SUMMARY:Push Up EMOM 10 Min")
   end
 
