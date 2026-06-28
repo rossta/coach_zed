@@ -1,3 +1,12 @@
+## [](https://github.com/rossta/coach_zed/compare/v0.7.0...v) (2026-06-28)
+
+### Features
+
+* merge schedules in json ([b8343be](https://github.com/rossta/coach_zed/commit/b8343bee863437f9313e6e0d4782aaa05a199fe5))
+
+### Bug Fixes
+
+* dedupe overlapping appended feed events ([d19060e](https://github.com/rossta/coach_zed/commit/d19060ed42ee960e73fdebf151c3195978d44b51))
 ## [](https://github.com/rossta/coach_zed/compare/v0.6.0...v) (2026-06-18)
 
 ### Features
