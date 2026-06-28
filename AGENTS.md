@@ -13,3 +13,4 @@
 - Use the Ruby version in `.ruby-version` for any Ruby commands.
 - If `chruby` is available on the system, activate the configured `.ruby-version` with `chruby` before running Ruby commands.
 - If `chruby` is installed via Homebrew, load it first and then switch to the repo Ruby before running `bundle`, `rspec`, `standardrb`, or other Ruby commands.
+- Commit hooks and hook-triggered Ruby commands also require the active repo Ruby; if `chruby` is available, source it before committing so the hook runs in the expected Ruby environment.
