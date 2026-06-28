@@ -32,8 +32,10 @@ class CoachZed
     end
 
     def append_to_existing_feed(existing_feed)
+      prefix, existing_blocks = split_existing_feed(existing_feed)
+      kept_blocks = existing_blocks.filter { |block| existing_event_date(block).nil? || existing_event_date(block) < start_date }
       event_block = event_lines.join("\r\n") + "\r\n"
-      existing_feed.sub(/END:VCALENDAR\s*\z/, "#{event_block}END:VCALENDAR\r\n")
+      "#{prefix}#{kept_blocks.join}#{event_block}END:VCALENDAR\r\n"
     end
 
     def header_lines
@@ -97,6 +99,23 @@ class CoachZed
         .gsub(",", "\\,")
         .gsub("\r\n", "\\n")
         .gsub("\n", "\\n")
+    end
+
+    def split_existing_feed(existing_feed)
+      match = existing_feed.match(/\A(?<prefix>.*?)(?<events>(?:BEGIN:VEVENT\r?\n.*?END:VEVENT\r?\n?)*)END:VCALENDAR\s*\z/m)
+      return [existing_feed.sub(/END:VCALENDAR\s*\z/, ""), []] if match.nil?
+
+      [
+        match[:prefix],
+        match[:events].scan(/BEGIN:VEVENT\r?\n.*?END:VEVENT\r?\n?/m)
+      ]
+    end
+
+    def existing_event_date(event_block)
+      match = event_block.match(/^DTSTART;VALUE=DATE:(\d{8})$/m)
+      return if match.nil?
+
+      Date.strptime(match[1], "%Y%m%d")
     end
   end
 end

@@ -83,6 +83,58 @@ RSpec.describe CoachZed::FeedWriter do
     expect(feed.scan("BEGIN:VEVENT").length).to eq(3)
   end
 
+  it "replaces overlapping existing events when appending" do
+    existing_feed = <<~ICAL
+      BEGIN:VCALENDAR
+      VERSION:2.0
+      PRODID:-//CoachZed//EN
+      CALSCALE:GREGORIAN
+      METHOD:PUBLISH
+      X-WR-CALNAME:Test Plan
+      X-WR-TIMEZONE:America/New_York
+      BEGIN:VEVENT
+      UID:existing-1@coach_zed
+      DTSTAMP:20260601T120000Z
+      DTSTART;VALUE=DATE:20260621
+      DTEND;VALUE=DATE:20260622
+      SUMMARY:Existing Workout
+      DESCRIPTION:Prior week.
+      END:VEVENT
+      BEGIN:VEVENT
+      UID:existing-2@coach_zed
+      DTSTAMP:20260601T120000Z
+      DTSTART;VALUE=DATE:20260622
+      DTEND;VALUE=DATE:20260623
+      SUMMARY:Overlapping Workout
+      DESCRIPTION:Should be replaced.
+      END:VEVENT
+      BEGIN:VEVENT
+      UID:existing-3@coach_zed
+      DTSTAMP:20260601T120000Z
+      DTSTART;VALUE=DATE:20260623
+      DTEND;VALUE=DATE:20260624
+      SUMMARY:Another Overlap
+      DESCRIPTION:Should also be replaced.
+      END:VEVENT
+      END:VCALENDAR
+    ICAL
+
+    feed = described_class.new(
+      schedule:,
+      start_date: Date.new(2026, 6, 22),
+      existing_feed_content: existing_feed
+    ).build
+
+    expect(feed).to include("SUMMARY:Existing Workout")
+    expect(feed).to include("SUMMARY:Push Up EMOM 10 Min")
+    expect(feed).not_to include("SUMMARY:Overlapping Workout")
+    expect(feed).not_to include("SUMMARY:Another Overlap")
+    expect(feed.scan("BEGIN:VEVENT").length).to eq(3)
+    expect(feed.scan("DTSTART;VALUE=DATE:20260621").length).to eq(1)
+    expect(feed.scan("DTSTART;VALUE=DATE:20260622").length).to eq(1)
+    expect(feed.scan("DTSTART;VALUE=DATE:20260623").length).to eq(1)
+  end
+
   it "uses a configured calendar title when provided" do
     feed = described_class.new(
       schedule:,
